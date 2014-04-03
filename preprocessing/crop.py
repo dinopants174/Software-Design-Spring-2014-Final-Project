@@ -5,32 +5,32 @@ Created on Thu Apr  3 14:28:20 2014
 @author: swalters
 """
 
-
 import Image
 import numpy
 
 def all_crops(filename):
-    # open image and convert to black/white
-    im = Image.open(filename)
-    gray = im.convert('L')
-    bw = gray.point(lambda x: 0 if x<200 else 255, '1')
-    bw_pix = bw.load()
-    
-    # get image size and convert to rows x cols array
-    (cols, rows) = im.size
+    [bw_pix, rows, cols] = im_to_size_px(filename)
     a = pix_to_array(bw_pix, rows, cols)
     
     # get bounding dimensions (for removing whitespace)
     [l, r, t, b] = strip_array(a)
 
     # save to new image, cropped
-    res = Image.new('L',(r-l, b-t))  
+    res = Image.new('L',(r-l, b-t))
     res_pix = res.load()
     for i in range(l, r):
         for j in range(t, b):
             res_pix[i-l, j-t] = bw_pix[i, j]
     croppedname = 'cp_' + filename
     res.save(croppedname)
+    
+def im_to_size_px(filename):
+    im = Image.open(filename)
+    gray = im.convert('L')
+    bw = gray.point(lambda x: 0 if x<200 else 255, '1')
+    bw_pix = bw.load()
+    (cols, rows) = im.size
+    return [bw_pix, rows, cols]
 
 def pix_to_array(pix, rows, cols):
     array = []
@@ -83,4 +83,4 @@ def all_white(a):
     return True
                 
 if __name__ == '__main__':
-    all_crops('fnord.tif')
+    all_crops('lines.png')
