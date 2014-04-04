@@ -37,7 +37,11 @@ def pix_to_array(pix, rows, cols):
     for r in range(rows):
         row = []
         for c in range(cols):
-            row.append(pix[c,r])
+            val = pix[c,r]
+            if val == 255:
+                row.append(1)
+            else:
+                row.append(0)
         array.append(row)
     return numpy.matrix(array) # dimensions R x C (matches image layout)
     
