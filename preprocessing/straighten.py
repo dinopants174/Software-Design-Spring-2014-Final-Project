@@ -6,6 +6,7 @@ Created on Thu Apr  3 16:30:05 2014
 """
 
 import crop
+import numpy
 
 def straighten(filename):
     [bw_pix, rows, cols] = crop.im_to_size_px(filename)
@@ -19,7 +20,9 @@ def find_darkest(a):
         dk_rows.append(255-darkness(a[r,:]))
     for c in range(cols):
         dk_cols.append(255-darkness(a[:,c]))
-    return [dk_rows, dk_cols] # do stdistr stuff
+    print 'Average row darkness stdev: ' + str(numpy.std(dk_rows))
+    print 'Average column darkness stdev: ' + str(numpy.std(dk_cols))
+    #return [dk_rows, dk_cols] # do stdistr stuff
 
 def darkness(line):
     (rows, cols) = line.shape
