@@ -6,6 +6,7 @@ Now belonging to Lazy Man's Notes - Olin Project, Inc.
 
 import numpy as np
 import cv2
+import time
 
 cap = cv2.VideoCapture(0)
 
@@ -21,6 +22,8 @@ while(True):
     cv2.imshow('frame',gray)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
+
+    time.sleep(.1)
 
 # When everything done, release the capture
 cap.release()
