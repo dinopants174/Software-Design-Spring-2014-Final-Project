@@ -43,7 +43,21 @@ def draw_horizontals(filename):
             px[c,r] = 175
     hzname = 'hz_' + filename
     im.save(hzname)
+    return line_rows
+
+def component_finder(line_rows, filename):
+    [a, rows, cols] = read_image(filename)
+    line = line_rows[2]
     
+    im = Image.open(filename)
+    px = im.load()
+    for i in range(cols):
+        if px[i,line] == 175:
+            i += 10
+            print "There is nothing here"
+        else:
+            print "There is something here at: " + str(i)
+
 def draw_verticals(filename):
     [a, rows, cols] = read_image(filename)
     [r_std, c_std] = find_darkest(a)
@@ -70,4 +84,5 @@ def darkness(line):
     return dkSum/float(line.size)
 
 if __name__ == '__main__':
-    draw_verticals('hz_handdrawn_circuit.jpg')
+    line_rows = draw_horizontals('cp_Doyung_Zoher_Test.jpg')
+    component_finder(line_rows, 'cp_Doyung_Zoher_Test.jpg')
