@@ -27,7 +27,7 @@ def all_crops(filename):
 def im_to_size_px(filename):
     im = Image.open(filename)
     gray = im.convert('L')
-    bw = gray.point(lambda x: 0 if x<200 else 255, '1')
+    bw = gray.point(lambda x: 0 if x<103 else 255, '1')
     bw_pix = bw.load()
     (cols, rows) = im.size
     return [bw_pix, rows, cols]
@@ -87,4 +87,4 @@ def all_white(a):
     return True
                 
 if __name__ == '__main__':
-    all_crops('lines.png')
+    all_crops('Doyung_Zoher_Test.jpg')

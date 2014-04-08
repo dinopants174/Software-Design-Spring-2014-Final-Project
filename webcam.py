@@ -16,7 +16,6 @@ while(True):
 
     # Our operations on the frame come here
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    print gray.shape
     
     # Display the resulting frame
     cv2.imshow('frame',gray)
