@@ -22,11 +22,11 @@
           <h2>This is the base repository for the SmarterBoard Software Design Spring 2014 Final Project. The members working on this project are Ryan Louie, Sarah Walters, Doyung Lee, and Zoher Ghadyali</h2>
         </header>
 
-        <!--<section id="downloads" class="clearfix">
+        <section id="downloads" class="clearfix">
           <a href="https://github.com/dinopants174/Software-Design-Spring-2014-Final-Project/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
           <a href="https://github.com/dinopants174/Software-Design-Spring-2014-Final-Project/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
           <a href="https://github.com/dinopants174/Software-Design-Spring-2014-Final-Project" id="view-on-github" class="button"><span>View on GitHub</span></a>
-        </section>-->
+        </section>
 
         <hr>
 
@@ -50,9 +50,9 @@
 <p>
 <strong>Who We Are</strong>
 <br>
-We are a team of 4 students from Olin College taking a Software Design course. Our project focuses on performing optical character recognition, OCR, to create a document containing the relevant text in a given photograph. Our members consist of Ryan Louie <a href="https://github.com/themythicaldrago" class="user-mention">@themythicaldrago</a>, Sarah Walters <a href="https://github.com/swalters4925" class="user-mention">@swalters4925</a>, Doyung Lee <a href="https://github.com/doyunglee" class="user-mention">@doyunglee</a>, and Zoher Ghadyali <a href="https://github.com/dinopants174" class="user-mention">@dinopants174</a>.
+We are a team of 4 students from Olin College taking a Software Design course. Our project focuses on performing optical character recognition, OCR, to create a rendered circuit diagram based off of a hand-drawn schematic. Our members consist of Ryan Louie <a href="https://github.com/themythicaldrago" class="user-mention">@themythicaldrago</a>, Sarah Walters <a href="https://github.com/swalters4925" class="user-mention">@swalters4925</a>, Doyung Lee <a href="https://github.com/doyunglee" class="user-mention">@doyunglee</a>, and Zoher Ghadyali <a href="https://github.com/dinopants174" class="user-mention">@dinopants174</a>.
 <br><br>
-Although this project is not designed to integrate with another group’s project, we do plan on creating something that is useful in everyday life, from interpreting signs in other languages to generating notes from the text on a whiteboard.
+This project is designed to integrate with the R.E.S.I.S.T.O.R team. Our project will generate the circuit diagram while the R.E.S.I.S.T.O.R team will use our diagram and data to demonstrate what the circuit would look like on a breadboard. We do plan on creating a product electrical engineers and students can use in everday life and interfacing with R.E.S.I.S.T.O.R will help us achieve that goal.
 </p>
 
 <p>
@@ -60,16 +60,16 @@ Although this project is not designed to integrate with another group’s projec
 <br>
 The blue-sky goal of the project is to provide a suite of services that demonstrate practical uses of OCR. We have come up with a list of applications that convert images to documents containing the text within the images. These include: a note generator using text on a whiteboard, a code compiler using hand-written code, a Wolfram Alpha type service using hand-written equations or graphs, a clean rendering of a circuit diagram from a hand-drawn image, and a translator using an image of text in another language.
 <br><br>
-The project will be centered around the whiteboard note generator - a piece of software which produces a text file from an uploaded photo of a whiteboard which contains just text.  If it turns out that OCR on handwriting is far more difficult than we’re currently anticipating, our minimum deliverable will be a program which produces a .txt file from an uploaded photo of a typed document.  We plan to begin by locating a Python package which performs OCR and writing an interface which allows it to identify images of single handwritten characters.
+The project will be centered around the circuit schematic renderer - a piece of software which produces a clean, professional circuit diagram using a hand-drawn diagram. Our minimum deliverable for this project would be to render the clean diagram using simple RC circuits. If we finish this project and still have time, we may pursue some of our extensions or simply focus on creating a very professional and easy to use web-app or GUI.
 <br><br>
-We could extend the core of the project by creating some of the other tools in the software suite and using them in conjunction with the text converter on a photo of a whiteboard which contains both text and images. The software would organize the data into an appropriate structure - titles, lists, tables, etc. We also have several extensions in mind concerning the specific tools we’ve thought about - the circuit diagram and graph tools could read equations and data from circuits and graphs; the circuit diagram tool could also produce vector graphics with moveable components instead of flat images. Similarly, the image-to-text converter could translate the words it reads from an image. Lastly, if we find we have plenty of time to do so, we’re potentially interested in creating a mobile or web app which makes our product usable.
+We could extend the core of the project by creating some of the other tools in the software suite and using them in conjunction with the circuit diagram generator. The software would organize the data into an appropriate structure - titles, lists, tables, etc. We also have several extensions in mind concerning the specific tools we’ve thought about - the circuit diagram and graph tools could read equations and data from circuits and graphs; the circuit diagram tool could also produce vector graphics with moveable components instead of flat images. Similarly, the image-to-text converter could translate the words it reads from an image. Lastly, if we find we have plenty of time to do so, we’re potentially interested in creating a mobile or web app which makes our product usable.
 </p>
 <p>
 <strong>Challenges Along the Way</strong>
 <br>
-There are some questions we need to answer in order to begin work on this project. We need to determine what format, other than .txt, could we produce our output document in. We also must find a method to discern whether some text is part of an image or not and we also must differentiate between a collection of lines that forms an image versus a letter. 
+There are some questions we need to answer in order to begin work on this project. We need to know where the wires of the circuit diagram are and how they are connected and we need to be able to understand the connections of the components in the diagram in order to interface with R.E.S.I.S.T.O.R. One problem that comes to mind is how to deal with components more complicated than resistors and capacitors that have multiple wires and connections flowing into and out of the component.
 <br><br>
-What we have found doing just a little bit of research are packages that perform OCR for us in Python. However, we realize that using these packages does not really help us achieve our goal of performing OCR ourselves. A hurdle we will face is finding the right balance between using useful and efficient modules and doing the work ourselves. In addition, another problem we may face is choosing to pursue a project that does not have an easy and established API for us to use. This would increase our work exponentially. 
+What we have found doing just a little bit of research are packages that perform OCR for us in Python. However, we realize that using these packages does not really help us achieve our goal of performing OCR ourselves. In addition, we are doing OCR on circuit diagrams, which will mean we cannot use traditional OCR packages that trained off of English and type.
 </p>
 <p>
 <strong>Where We Need Help</strong>
