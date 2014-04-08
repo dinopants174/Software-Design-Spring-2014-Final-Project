@@ -24,6 +24,7 @@
 
         <section id="downloads" class="clearfix">
           <a href="#project-proposal" class="button"><span>Project Proposal</span></a>
+          <a href="#design-proposal" class="button"><span>Design Proposal</span></a>
           <!--<a href="https://github.com/dinopants174/Software-Design-Spring-2014-Final-Project/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
           <a href="https://github.com/dinopants174/Software-Design-Spring-2014-Final-Project" id="view-on-github" class="button"><span>View on GitHub</span></a>-->
         </section>
@@ -32,10 +33,39 @@
 
         <section id="main_content">
                     <h3>
+<a name ="design-proposal" class="anchor" href="#design-proposal"><span class="octicon octicon-link"></span></a>Design Proposal</h3>
+
+<p>
+  <strong>Design Pipeline</strong>
+  <br>
+We input a hand-drawn circuit diagram, we define a reading frame that moves through the diagram, we check where the wires are by finding lines at a certain threshold for darkness, and we move along the line, looking for irregularities. Upon finding an irregularity, we define a component there and we use our component classifier to identify what component is there. Finally, we produce our initial goal of a nicely rendered circuit diagram while also producing a list of objects that the RESISTOR team can use.
+</p>
+
+<p>
+  <strong>Design Story</strong>
+  <br>
+After talking to the ninjas about performing OCR on a whiteboard and generating notes based on the content on the whiteboard, we decided that this was too general a project. Instead, we broke up into two teams in order to pursue two different ideas involving OCR. One group worked on compiling handwritten code while another worked on a hand-drawn circuit diagram renderer. After beta-testing each project for a week, we made the decision to focus entirely on the circuit diagram project. This decision was made based on code that we modified from research papers which functioned incredibly well. It was also due to the struggle of retraining the module we were using, Tesseract, to perform OCR on handwriting and the fact that Tesseract was trained off of English and was not recognizing code. We were able to reach the minimum deliverables we had for both projects and then decided that the circuit diagram project just had much more room to grow and do interesting work than the hand-written code compiler.
+</p>
+
+<p>
+  <strong>Data Structure</strong>
+  <br>
+We’ve just decided on the way we’re planning to store graphical representations of circuit diagrams after we read them from images. We’re open to interfacing with the RESISTOR team (they’re producing breadboard layouts from graphical representations of circuit diagrams), and we used our first design review with them in part to decide on a data structure which will be common to both of our teams.
+<br><br>
+Each component in the circuit will be stored as an object of the class ‘Component’. That class will include an attribute, ‘connections’, which is a dictionary mapping from component pin number to a list of Component objects connected to that pin. We will consider resistors and capacitors to be components with two pins (ie for a resistor or capacitor ‘connections’ will have two keys, 1 and 2, which correspond to two lists of components).
+</p>
+
+<p>
+  <strong>Development Plan</strong>
+  <br>
+Since our team split up between code-compiler and circuit-reader previously, we met and reorganized tasks. Now that the team’s focus was on the circuit-reader, we allocated tasks to each of our members: Zoher and Doyung will work on the component-detection of the program (finding where resistors, capacitors, etc. are on a wire line), Sarah will continue working on line-detection (she already has a basic version and is going to improve it) and Ryan will work on creating a drawing given a list of intersections and component location. These parts will not interfere with each other, but Sarah, Doyung and Zoher will work closely together for this set of tasks because the line detection and component detection are related. The team meets every week with a deliverable, in which we both explain how we coded our tasks and show how far we got (to let other team members understand the code as well as scope our tasks appropriately).
+</p>
+
+
+<h3>
 <a name="project-proposal" class="anchor" href="#project-proposal"><span class="octicon octicon-link"></span></a>Project Proposal</h3>
 
 <p>
-
 <strong>SmarterBoard Project Repository:</strong>
 <br>
 <a name"Repo-link" href="https://github.com/dinopants174/SmarterBoard"><span class="octicon octicon-link">https://github.com/dinopants174/SmarterBoard</span></a>
