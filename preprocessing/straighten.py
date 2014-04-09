@@ -7,7 +7,7 @@ Created on Thu Apr  3 16:30:05 2014
 
 import crop
 import numpy
-import Image
+from PIL import Image
 
 def read_image(filename):
     [bw_pix, rows, cols] = crop.im_to_size_px(filename)
@@ -47,16 +47,17 @@ def draw_horizontals(filename):
 
 def component_finder(line_rows, filename):
     [a, rows, cols] = read_image(filename)
-    line = line_rows[2]
+    line = line_rows[2]+15
     
     im = Image.open(filename)
     px = im.load()
     for i in range(cols):
-        if px[i,line] == 175:
-            i += 10
-            print "There is nothing here"
+        if px[i,line] > 200:
+            i+=10
         else:
+            print px[i,line]
             print "There is something here at: " + str(i)
+            i+=5
 
 def draw_verticals(filename):
     [a, rows, cols] = read_image(filename)
@@ -85,4 +86,4 @@ def darkness(line):
 
 if __name__ == '__main__':
     line_rows = draw_horizontals('cp_Doyung_Zoher_Test.jpg')
-    component_finder(line_rows, 'cp_Doyung_Zoher_Test.jpg')
+    component_finder(line_rows, 'hz_cp_Doyung_Zoher_Test.jpg')
