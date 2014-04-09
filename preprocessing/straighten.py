@@ -7,7 +7,7 @@ Created on Thu Apr  3 16:30:05 2014
 
 import crop
 import numpy
-from PIL import Image
+from PIL import Image, ImageDraw
 
 def read_image(filename):
     [bw_pix, rows, cols] = crop.im_to_size_px(filename)
@@ -47,17 +47,20 @@ def draw_horizontals(filename):
 
 def component_finder(line_rows, filename):
     [a, rows, cols] = read_image(filename)
-    line = line_rows[2]+15
-    
+    line = line_rows[2]-35
+    r = 5
     im = Image.open(filename)
     px = im.load()
     for i in range(cols):
-        if px[i,line] > 200:
-            i+=10
-        else:
+        if px[i,line] < 25:
             print px[i,line]
-            print "There is something here at: " + str(i)
-            i+=5
+            draw = ImageDraw.Draw(im)
+            draw.ellipse((i-r, line-r, i+r, line+r), fill=0)
+        # elif px[i,line] > 200:
+        #     draw = ImageDraw.Draw(im)
+        #     draw.ellipse((i-r, line-r, i+r, line+r), fill=255)
+    dotname = 'dot_' + filename
+    im.save(dotname)
 
 def draw_verticals(filename):
     [a, rows, cols] = read_image(filename)
