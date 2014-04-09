@@ -46,6 +46,7 @@ def draw_horizontals(filename):
     return line_rows
 
 def resize(filename):
+    """Used to resize the image because the giant whiteboard picture Doyung and I were working with had a really long run-time"""
     im = Image.open(filename)
     half = 0.25
     out = im.resize( [int(half * s) for s in im.size] )
@@ -53,10 +54,17 @@ def resize(filename):
     out.save(small_name)
 
 def component_finder(line_rows, filename):
+    """Using the resized image and the horizontal lines the draw_horizontals function gives us, we find the average of those lines.
+    We then offset those lines by 20px and we look for instances of non-white pixels, indicating an irregularity in the line. For 
+    visualization purposes, we draw circles at each instance of non-white pixels but we will eventually aim to crop around each
+    component and use the classifier to identify it"""
+    
     avg_line = 0
     for line in line_rows:
         avg_line += line
-    line_final = int(float(avg_line)/len(line_rows))-10
+    offset = 20
+    line_final = int(float(avg_line)/len(line_rows))-offset
+    line_final2 = line_final + 2*offset
 
     [a, rows, cols] = read_image(filename)
     im = Image.open(filename)
@@ -64,12 +72,15 @@ def component_finder(line_rows, filename):
     r = 5
     for i in range(cols):
         if px[i,line_final] < 25:
-            print px[i,line_final]
             draw = ImageDraw.Draw(im)
             draw.ellipse((i-r, line-r, i+r, line+r), fill=0)
+        # elif px[i, line_final2] < 25:
+        #      print px[i, line_final2]
+        #      draw = ImageDraw.Draw(im)
+        #      draw.ellipse((i-r, line-r, i+r, line+r), fill=0)
     im.show()
-    dotname = 'dot_' + filename
-    im.save(dotname)
+    # dotname = 'dot_' + filename
+    # im.save(dotname)
 
 def draw_verticals(filename):
     [a, rows, cols] = read_image(filename)
