@@ -5,7 +5,7 @@ Created on Thu Apr  3 14:28:20 2014
 @author: swalters
 """
 
-import Image
+from PIL import Image
 import numpy
 
 def all_crops(filename):
@@ -87,4 +87,4 @@ def all_white(a):
     return True
                 
 if __name__ == '__main__':
-    all_crops('lines.png')
+    all_crops('Doyung_Zoher_Test.jpg')
