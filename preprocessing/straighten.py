@@ -10,8 +10,9 @@ import numpy
 import Image
 
 def read_image(filename):
-    [bw_pix, rows, cols] = crop.im_to_size_px(filename)
-    return [crop.pix_to_array(bw_pix, rows, cols), rows, cols]
+    im = crop.open_file(filename)
+    [bw_pix, rows, cols] = crop.im_to_size_px(im, 100)
+    return [crop.pix_to_array(bw_pix, rows, cols), bw_pix, rows, cols]
     
 def find_darkest(a):
     dk_rows = []
@@ -28,19 +29,17 @@ def find_darkest(a):
     return [r_std, c_std]
     
 def draw_horizontals(filename):
-    [a, rows, cols] = read_image(filename)
+    [a, bw_pix, rows, cols] = read_image(filename)
     [r_std, c_std] = find_darkest(a)
     line_rows = []
     for r in range(rows):
         val = numpy.sum(a[r,:])
         if val < 0.8*cols:
             line_rows.append(r)
-    
-    im = Image.open(filename)
-    px = im.load()
+            
     for r in line_rows:
         for c in range(cols-1):
-            px[c,r] = 175
+            bw_pix[c,r] = 175
     hzname = 'hz_' + filename
     im.save(hzname)
     
@@ -70,4 +69,4 @@ def darkness(line):
     return dkSum/float(line.size)
 
 if __name__ == '__main__':
-    draw_verticals('hz_handdrawn_circuit.jpg')
+    print 'hello'
