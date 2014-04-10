@@ -5,7 +5,7 @@ Created on Thu Apr  3 14:28:20 2014
 @author: swalters
 """
 
-import Image
+from PIL import Image
 import numpy
 
 # file reading and writing methods
@@ -39,8 +39,13 @@ def all_crops(im):
 # convert image to thresholded set of pixels
 def im_to_size_px(im, threshold):
     gray = im.convert('L')
+<<<<<<< HEAD
     crop_bw = gray.point(lambda x: 0 if x<threshold else 255, '1')
     crop_bw_pix = crop_bw.load()
+=======
+    bw = gray.point(lambda x: 0 if x<103 else 255, '1')
+    bw_pix = bw.load()
+>>>>>>> 7ba6b167f49d5e5031cd758d66607b8304a3c167
     (cols, rows) = im.size
     
     radius = 5
@@ -115,7 +120,11 @@ def all_white(a):
     return True
                 
 if __name__ == '__main__':
+<<<<<<< HEAD
     filename = 'Doyung_Zoher_Test.jpg'
     im = open_file(filename)
     cropped = all_crops(im)
     save_image(cropped, 'cp_'+filename)
+=======
+    all_crops('Doyung_Zoher_Test.jpg')
+>>>>>>> 7ba6b167f49d5e5031cd758d66607b8304a3c167
