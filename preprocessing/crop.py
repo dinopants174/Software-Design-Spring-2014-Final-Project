@@ -8,26 +8,9 @@ Created on Thu Apr  3 14:28:20 2014
 from PIL import Image
 import numpy
 
-'''************
-file reading and writing methods
-************'''
-def open_file(filename):
-    ''' creates image object from image at filename
-        input: filename (.jpg, .png, .tif, etc)
-        output: image object
-    '''
-    return Image.open(filename)
-    
-def save_image(im, filename):
-    ''' saves image object to file
-        input: image object im, string filename
-        output: file is saved; no return value
-    '''
-    im.save(filename)
-
 
 '''************
-use cases
+use cases - filename or image object
 ************'''
 def process(filename): 
     ''' black/white converts and crops image
@@ -37,6 +20,13 @@ def process(filename):
     im = open_file(filename)
     cropped = all_crops(im) # remove bordering whitespace
     save_image(cropped, 'cp_'+filename) # add prefix so as not to overwrite original image file
+    
+def process_im(image):
+    ''' black/white converts and crops image
+        input: image object
+        output: cropped image object
+    '''
+    return all_crops(image)
 
 
 '''************
@@ -68,7 +58,7 @@ def all_crops(im):
 
 
 '''************
-helper methods
+helper processing methods
 ************'''
 def im_to_size_px(im, threshold):
     ''' converts image to thresholded set of pixel values (all 0 or 255)
@@ -160,6 +150,24 @@ def all_white(a):
             if a[r,c] != 1:
                 return False
     return True
+
+
+'''************
+file reading and writing methods
+************'''
+def open_file(filename):
+    ''' creates image object from image at filename
+        input: filename (.jpg, .png, .tif, etc)
+        output: image object
+    '''
+    return Image.open(filename)
+    
+def save_image(im, filename):
+    ''' saves image object to file
+        input: image object im, string filename
+        output: file is saved; no return value
+    '''
+    im.save(filename)
 
 
 '''************
