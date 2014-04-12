@@ -53,8 +53,7 @@ def im_to_size_px(im, threshold):
                         if crop_bw_pix[mc, mr] == 0:
                             dark += 1
                 if dark < 1000:
-                    crop_bw_pix[c,r] == 255
-                        
+                    crop_bw_pix[c,r] == 255                 
     return [crop_bw_pix, rows, cols]
 
 # convert set of pixels to array
@@ -113,9 +112,12 @@ def all_white(a):
             if a[r,c] != 1:
                 return False
     return True
-                
-if __name__ == '__main__':
-    filename = 'Doyung_Zoher_Test.jpg'
+
+def process(filename): 
     im = open_file(filename)
     cropped = all_crops(im)
-    save_image(cropped, 'cp_'+filename)
+    save_image(cropped, 'cp_'+filename)  
+        
+if __name__ == '__main__':
+    filename = 'Doyung_Zoher_Test.jpg'
+    process(filename)
