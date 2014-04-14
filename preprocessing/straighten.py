@@ -10,28 +10,44 @@ import numpy
 import Image
 
 def read_image(filename):
+    ''' crops image, converts to black/white, and produces a numpy array representation
+        input: image filename
+        output: pixel array representing cropped, b/w conversion
+    '''
     crop.process(filename) # bw's, crops, saves image as cp_filename
     im = crop.open_file('cp_'+filename)
     [bw_pix, rows, cols] = crop.im_to_size_px(im, 100)
-    return [crop.pix_to_array(bw_pix, rows, cols), rows, cols]
+    return crop.pix_to_array(bw_pix, rows, cols)
     
-def find_darkest(a):
+def hz_or_vert(a):
+    ''' makes a guess at whether an image contains horizontal or vertical lines using standard deviation
+        input: numpy matrix
+        output: [row darkness standard deviation, column darkness standard deviation]
+            large r_std and small c_std indicates horizontal lines; opposite indicates vertical lines
+    '''
     dk_rows = []
     dk_cols = []
     (rows, cols) = a.shape
+    
+    # collect average darknesses for rows and columns
     for r in range(rows):
         dk_rows.append(255-darkness(a[r,:]))
     for c in range(cols):
         dk_cols.append(255-darkness(a[:,c]))
+        
+    # compute standard deviations
+    # large r_std and small c_std indicates horizontal lines; opposite indicates vertical lines
     r_std = numpy.std(dk_rows)
     c_std = numpy.std(dk_cols)
+    
     print 'Average row darkness stdev: ' + str(r_std)
     print 'Average column darkness stdev: ' + str(c_std)
+    
     return [r_std, c_std]
     
 def draw_horizontals(filename):
-    [a, rows, cols] = read_image(filename)
-    [r_std, c_std] = find_darkest(a)
+    a = read_image(filename)
+    (rows, cols) = a.shape
     line_rows = []
     im = Image.open('cp_'+filename)
     bw_pix = im.load()
@@ -46,8 +62,8 @@ def draw_horizontals(filename):
     im.save(hzname)
     
 def draw_verticals(filename):
-    [a, rows, cols] = read_image(filename)
-    [r_std, c_std] = find_darkest(a)
+    a = read_image(filename)
+    (rows, cols) = a.shape
     line_cols = []
     im = Image.open('cp_'+filename)
     bw_pix = im.load()
