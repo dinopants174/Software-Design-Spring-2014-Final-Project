@@ -62,22 +62,26 @@ def component_finder(line_rows, filename):
     avg_line = 0
     for line in line_rows:
         avg_line += line
-    offset = 20
-    line_final = int(float(avg_line)/len(line_rows))-offset
-    line_final2 = line_final + 2*offset
 
     [a, rows, cols] = read_image(filename)
     im = Image.open(filename)
+    im_width, im_height = im.size
+    print im_height
+    offset = im_height*0.04
+    print offset
+    line_final = int(float(avg_line)/len(line_rows))-offset
+    line_final2 = line_final + 2*offset
+
     px = im.load()
-    r = 5
+    list_of_nw = []
     for i in range(cols):
-        if px[i,line_final] < 25:
-            draw = ImageDraw.Draw(im)
-            draw.ellipse((i-r, line-r, i+r, line+r), fill=0)
+        if px[i,line_final] < 25 or px[i, line_final2] < 25:
+            
+        #     draw = ImageDraw.Draw(im)
+        #     draw.ellipse((i-r, line-r, i+r, line+r), fill=0)
         # elif px[i, line_final2] < 25:
-        #      print px[i, line_final2]
-        #      draw = ImageDraw.Draw(im)
-        #      draw.ellipse((i-r, line-r, i+r, line+r), fill=0)
+        #     draw = ImageDraw.Draw(im)
+        #     draw.ellipse((i-r, line-r, i+r, line+r), fill=0)
     im.show()
     # dotname = 'dot_' + filename
     # im.save(dotname)
@@ -109,5 +113,5 @@ def darkness(line):
 
 if __name__ == '__main__':
     #resize('cp_Doyung_Zoher_Test.jpg')
-    line_rows = draw_horizontals('small_cp_Doyung_Zoher_Test.jpg')
-    component_finder(line_rows, 'hz_small_cp_Doyung_Zoher_Test.jpg')
+    #line_rows = draw_horizontals('small_cp_Doyung_Zoher_Test.jpg')
+    #component_finder(line_rows, 'hz_small_cp_Doyung_Zoher_Test.jpg')
