@@ -115,27 +115,20 @@ def component_finder(line_rows, filename):
     a = read_image(filename)
     (rows, cols) = a.shape
 
-    r = 10
+    r = []
     L = []
     draw = ImageDraw.Draw(im)
+    whitespace = 0
     for i in range(cols):
         if bw_pix[i,line_final] < 25 or bw_pix[i,line_final2] < 25:
             L.append(i)
-            draw = ImageDraw.Draw(im)
-            draw.ellipse((i-r, line-r, i+r, line+r), fill=0)    
-    #im.show()
+        if bw_pix[i, line_final] < 25 and bw_pix[i+1, line_final] == 255 or bw_pix[i, line_final2] < 25 and bw_pix[i+1, line_final2] == 255:
+            r.append(L)
+    for i in r:
+        draw.line((i[0], line_final, i[len(i)-1], line_final), width = 10)
+    im.show()
     #dotname = 'dot_' + filename
     #im.save(dotname)
-    #draw.line((L[1], line_final, L[len(L)-1], line_final2), width=10)
-    for i in range(len(L)):
-        if L[i+1] - L[i] > 100:
-            L.insert(i+1, 500)
-    print L
-    for i in range(len(L)):
-        if L[i] == 500:
-            draw.line((L[5], line_final, L[i-1], line_final), width=10)
-    im.show()
-
 
 if __name__ == '__main__':
     line_rows = draw_horizontals('cp2_Doyung_Zoher_Test.jpg')
