@@ -7,7 +7,7 @@ Created on Thu Apr  3 16:30:05 2014
 
 import crop
 import numpy
-import Image
+from PIL import Image, ImageDraw
 
 def read_image(filename):
     ''' crops image, converts to black/white, and produces a numpy array representation
@@ -60,6 +60,7 @@ def draw_horizontals(filename):
             bw_pix[c,r] = 175
     hzname = 'hz_' + filename
     im.save(hzname)
+    return line_rows
     
 def draw_verticals(filename):
     a = read_image(filename)
@@ -76,6 +77,7 @@ def draw_verticals(filename):
             bw_pix[c,r] = 175
     vtname = 'vt_' + filename
     im.save(vtname)
+    return line_cols
 
 def darkness(line):
     (rows, cols) = line.shape
@@ -85,5 +87,48 @@ def darkness(line):
             dkSum += line[i,j]
     return dkSum/float(line.size)
 
+def resize(filename):
+    """Used to resize the image because the giant whiteboard picture Doyung and I were working with had a really long run-time"""
+    im = Image.open(filename)
+    half = 0.25
+    out = im.resize( [int(half * s) for s in im.size] )
+    small_name = 'small_' + filename
+    out.save(small_name)
+
+
+def component_finder(line_rows, filename):
+    """Using the resized image and the horizontal lines the draw_horizontals function gives us, we find the average of those lines.
+    We then offset those lines by 20px and we look for instances of non-white pixels, indicating an irregularity in the line. For 
+    visualization purposes, we draw circles at each instance of non-white pixels but we will eventually aim to crop around each
+    component and use the classifier to identify it"""
+    
+    im = Image.open(filename)
+    width, height = im.size
+    bw_pix = im.load()
+    avg_line = 0
+    for line in line_rows:  #line_rows comes from Sarah's draw_horizontals function
+        avg_line += line
+    offset = 0.045*height   #
+    line_final = int(float(avg_line)/len(line_rows))-offset
+    line_final2 = line_final + 2*offset
+    
+    a = read_image(filename)
+    (rows, cols) = a.shape
+
+    r = 10
+    for i in range(cols):
+        if bw_pix[i,line_final] < 25:
+            #print bw_pix[i,line_final]
+            draw = ImageDraw.Draw(im)
+            draw.ellipse((i-r, line-r, i+r, line+r), fill=0)
+        elif bw_pix[i, line_final2] < 25:
+            #print bw_pix[i, line_final2]
+            draw = ImageDraw.Draw(im)
+            draw.ellipse((i-r, line-r, i+r, line+r), fill=0)
+    im.show()
+    #dotname = 'dot_' + filename
+    #im.save(dotname)
+
 if __name__ == '__main__':
-    print 'hello'
+    line_rows = draw_horizontals('cp2_Doyung_Zoher_Test.jpg')
+    component_finder(line_rows,'hz_cp2_Doyung_Zoher_Test.jpg')
