@@ -8,6 +8,7 @@ Created on Thu Apr  3 16:30:05 2014
 import crop
 import numpy
 from PIL import Image, ImageDraw
+import pprint
 
 def read_image(filename):
     ''' crops image, converts to black/white, and produces a numpy array representation
@@ -108,27 +109,34 @@ def component_finder(line_rows, filename):
     avg_line = 0
     for line in line_rows:  #line_rows comes from Sarah's draw_horizontals function
         avg_line += line
-    offset = 0.045*height   #
-    line_final = int(float(avg_line)/len(line_rows))-offset
-    line_final2 = line_final + 2*offset
+    offset = 0.045*height
+    line_final = int((float(avg_line)/len(line_rows))-offset)
+    line_final2 = int(line_final + 2*offset)
     
     a = read_image(filename)
     (rows, cols) = a.shape
 
-    r = []
-    L = []
+    whitespace = []
+    non_white = []
     draw = ImageDraw.Draw(im)
-    whitespace = 0
     for i in range(cols):
         if bw_pix[i,line_final] < 25 or bw_pix[i,line_final2] < 25:
-            L.append(i)
-        if bw_pix[i, line_final] < 25 and bw_pix[i+1, line_final] == 255 or bw_pix[i, line_final2] < 25 and bw_pix[i+1, line_final2] == 255:
-            r.append(L)
-    for i in r:
-        draw.line((i[0], line_final, i[len(i)-1], line_final), width = 10)
-    im.show()
+            non_white.append(i)
+
+    component = []
+    all_components = []
+    component_counter = 0
+    for i in range(len(non_white)-1):
+        if non_white[i+1] - non_white[i] > 100:
+            component_counter += 1
+            all_components.append(component)
+            component = []
+        else:
+            component.append(non_white[i])
+
     #dotname = 'dot_' + filename
     #im.save(dotname)
+    return all_components
 
 if __name__ == '__main__':
     line_rows = draw_horizontals('cp2_Doyung_Zoher_Test.jpg')
