@@ -110,6 +110,7 @@ def component_finder(line_rows, filename):
     for line in line_rows:  #line_rows comes from Sarah's draw_horizontals function
         avg_line += line
     offset = 0.045*height
+    line = int(float(avg_line)/len(line_rows))
     line_final = int((float(avg_line)/len(line_rows))-offset)
     line_final2 = int(line_final + 2*offset)
     
@@ -122,22 +123,26 @@ def component_finder(line_rows, filename):
     for i in range(cols):
         if bw_pix[i,line_final] < 25 or bw_pix[i,line_final2] < 25:
             non_white.append(i)
-
+    
     component = []
     all_components = []
+    print width
     component_counter = 0
     for i in range(len(non_white)-1):
-        if non_white[i+1] - non_white[i] > 100:
+        if non_white[i+1] - non_white[i] > 0.04*width:      #0.12*width
             component_counter += 1
             all_components.append(component)
             component = []
         else:
             component.append(non_white[i])
-
-    #dotname = 'dot_' + filename
-    #im.save(dotname)
-    return all_components
+    
+    print all_components
+    for component in all_components:
+        draw.line((component[0], line_final, component[len(component)-1], line_final), width=15)
+    dotname = 'dot3_' + filename
+    im.save(dotname)
 
 if __name__ == '__main__':
     line_rows = draw_horizontals('cp2_Doyung_Zoher_Test.jpg')
     component_finder(line_rows,'hz_cp2_Doyung_Zoher_Test.jpg')
+
