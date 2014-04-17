@@ -89,11 +89,11 @@ def draw_horizontals_a(a, a2):
     '''
     # get image array and pixel source
     (rows, cols) = a.shape
-    
+
     # loop through rows checking for darkness
     for r in range(rows):
         val = numpy.sum(a[r,:])
-        if val < 0.5*cols: # hard-coded, as of now
+        if val < 0.4*255*cols: # hard-coded, as of now
            for c in range(cols):
                 a2[r,c] = 0
     return a2

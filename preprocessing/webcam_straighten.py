@@ -11,6 +11,7 @@ while(1):
     #im_bw = cv2.threshold(gray, 128, 255, cv2.THRESH_BINARY)[1]
     lines = s.draw_horizontals_a(im_bw, gray)
     cv2.imshow('Frame',gray)
+    cv2.imshow('Frame2', im_bw)
     if cv2.waitKey(5)==ord('q'):
         break
 
