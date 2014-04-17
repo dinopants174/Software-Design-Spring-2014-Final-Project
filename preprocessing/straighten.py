@@ -21,6 +21,10 @@ def read_image(filename):
     im = crop.open_file('cp_'+filename)
     [bw_pix, rows, cols] = crop.im_to_size_px(im, 100)
     return crop.pix_to_array(bw_pix, rows, cols)
+    
+def read_image_im(im):
+    [bw_pix, rows, cols] = crop.im_to_size_px(im, 100)
+    return crop.pix_to_array(bw_pix, rows, cols)
    
    
 '''***********
@@ -52,6 +56,54 @@ def draw_horizontals(filename):
     # save
     hzname = 'hz_' + filename
     im.save(hzname)
+    
+def draw_horizontals_im(im):
+    ''' draws straight lines over the strongest horizontals in an image
+        input: image object
+        output: image object with superimposed lines
+    '''
+    # get image array and pixel source
+    a = read_image_im(im)
+    (rows, cols) = a.shape
+    bw_pix = im.load()
+    
+    # loop through rows checking for darkness
+    line_rows = []
+    for r in range(rows):
+        val = numpy.sum(a[r,:])
+        if val < 0.8*cols: # hard-coded, as of now
+            line_rows.append(r)
+            
+    # draw dark rows
+    for r in line_rows:
+        for c in range(cols-1):
+            bw_pix[c,r] = 175
+
+    # return
+    return im
+    
+def draw_horizontals_a(a, a2):
+    ''' draws straight lines over the strongest horizontals in an image
+        input: image object
+        output: image object with superimposed lines
+    '''
+    # get image array and pixel source
+    (rows, cols) = a.shape
+    
+    # loop through rows checking for darkness
+    for r in range(rows):
+        val = numpy.sum(a[r,:])
+        if val < 0.5*cols: # hard-coded, as of now
+           for c in range(cols):
+                a2[r,c] = 0
+    return a2
+    
+def contains_non_binary(a):
+    (rows, cols) = a.shape
+    for r in range(rows):
+        for c in range(cols):
+            if a[r,c] not in [1,0]: return True
+    return False
     
 def draw_verticals(filename):
     ''' draws straight lines over the strongest verticals in an image
