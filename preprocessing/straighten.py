@@ -97,13 +97,14 @@ def resize(filename):
     out.save(small_name)
 
 
-def component_finder(line_rows, filename):
+def component_finder(line_rows, filename, original):
     """Using the resized image and the horizontal lines the draw_horizontals function gives us, we find the average of those lines.
     We then offset those lines by 20px and we look for instances of non-white pixels, indicating an irregularity in the line. For 
     visualization purposes, we draw circles at each instance of non-white pixels but we will eventually aim to crop around each
     component and use the classifier to identify it"""
     
     im = Image.open(filename)
+    im2 = Image.open(original)
     width, height = im.size
     bw_pix = im.load()
     avg_line = 0
@@ -141,14 +142,16 @@ def component_finder(line_rows, filename):
     if len(component) != 0:
         all_components.append(component)
 
-    for component in all_components:
-        draw.line((component[0], line_final, component[len(component)-1], line_final), fill=175, width=15)
-    im.show()
-    
-    dotname = 'dot_' + filename
-    im.save(dotname)
+
+    for i in range(len(all_components)):
+        name = 'component_' + str(i)
+        box = (int(all_components[i][0] - 0.05*width), int(line_final-0.25*height), int(all_components[i][len(all_components[i])-1]+0.05*width), int(line_final2+0.25*height))
+        region = im2.crop(box)
+        region.save(name, 'JPEG')
+    # dotname = 'dot_' + filename
+    # im.save(dotname)
 
 if __name__ == '__main__':
     line_rows = draw_horizontals('cp2_Doyung_Zoher_Test.jpg')
-    component_finder(line_rows,'hz_cp2_Doyung_Zoher_Test.jpg')
+    component_finder(line_rows,'hz_cp2_Doyung_Zoher_Test.jpg', 'cp2_Doyung_Zoher_Test.jpg')
 
