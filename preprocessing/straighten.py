@@ -7,8 +7,7 @@ Created on Thu Apr  3 16:30:05 2014
 
 import crop
 import numpy
-from PIL import Image, ImageDraw
-import pprint
+from PIL import Image
 
 '''***********
 file reading methods
@@ -212,9 +211,7 @@ def component_finder(line_rows, filename, original):
     a = read_image(filename)
     (rows, cols) = a.shape
 
-    whitespace = []
     non_white = []
-    draw = ImageDraw.Draw(im)
     for i in range(cols):
         # bw_pix[i, line_final] = 175
         # bw_pix[i, line_final2] = 175
@@ -239,13 +236,11 @@ def component_finder(line_rows, filename, original):
 
     for i in range(len(all_components)):
         name = 'component_' + str(i)
-        box = (int(all_components[i][0] - 0.05*width), int(line_final-0.25*height), int(all_components[i][len(all_components[i])-1]+0.05*width), int(line_final2+0.25*height))
+        box = (int(all_components[i][0] - 0.03*width), int(line_final-0.25*height), int(all_components[i][len(all_components[i])-1]+0.03*width), int(line_final2+0.25*height))
         region = im2.crop(box)
-        region.save(name, 'JPEG')
-    # dotname = 'dot_' + filename
-    # im.save(dotname)
+        region.save(name + ".jpg")
 
 if __name__ == '__main__':
-    line_rows = draw_horizontals('cp2_Doyung_Zoher_Test.jpg')
-    component_finder(line_rows,'hz_cp2_Doyung_Zoher_Test.jpg', 'cp2_Doyung_Zoher_Test.jpg')
+    line_rows = draw_horizontals('Doyung_Zoher_Test.jpg')
+    component_finder(line_rows,'hz_Doyung_Zoher_Test.jpg', 'cp_Doyung_Zoher_Test.jpg')
 
