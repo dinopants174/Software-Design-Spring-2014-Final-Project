@@ -174,5 +174,5 @@ def save_image(im, filename):
 for testing
 ************'''
 if __name__ == '__main__':
-    filename = 'Doyung_Zoher_Test.jpg'
+    filename = 'zoher_test.jpg'
     process(filename)

@@ -7,7 +7,8 @@ Created on Thu Apr  3 16:30:05 2014
 
 import crop
 import numpy
-import Image
+from PIL import Image, ImageDraw
+import pprint
 
 '''***********
 file reading methods
@@ -56,6 +57,7 @@ def draw_horizontals(filename):
     # save
     hzname = 'hz_' + filename
     im.save(hzname)
+    return line_rows
     
 def draw_horizontals_im(im):
     ''' draws straight lines over the strongest horizontals in an image
@@ -131,6 +133,7 @@ def draw_verticals(filename):
     # save
     vtname = 'vt_' + filename
     im.save(vtname)
+    return line_cols
 
 def darkness(line):
     ''' computes average darkness of a numpy array of 1's and 0's
@@ -178,5 +181,71 @@ def hz_or_vert(a):
 '''***********
 main method
 ***********'''
+
+def resize(filename):
+    """Used to resize the image because the giant whiteboard picture Doyung and I were working with had a really long run-time"""
+    im = Image.open(filename)
+    half = 0.25
+    out = im.resize( [int(half * s) for s in im.size] )
+    small_name = 'small_' + filename
+    out.save(small_name)
+
+
+def component_finder(line_rows, filename, original):
+    """Using the resized image and the horizontal lines the draw_horizontals function gives us, we find the average of those lines.
+    We then offset those lines by 20px and we look for instances of non-white pixels, indicating an irregularity in the line. For 
+    visualization purposes, we draw circles at each instance of non-white pixels but we will eventually aim to crop around each
+    component and use the classifier to identify it"""
+    
+    im = Image.open(filename)
+    im2 = Image.open(original)
+    width, height = im.size
+    bw_pix = im.load()
+    avg_line = 0
+    for line in line_rows:  #line_rows comes from Sarah's draw_horizontals function
+        avg_line += line
+    offset = 0.15*height
+    line = int(float(avg_line)/len(line_rows))
+    line_final = int((float(avg_line)/len(line_rows))-offset)
+    line_final2 = int(line_final + 2*offset)
+    
+    a = read_image(filename)
+    (rows, cols) = a.shape
+
+    whitespace = []
+    non_white = []
+    draw = ImageDraw.Draw(im)
+    for i in range(cols):
+        # bw_pix[i, line_final] = 175
+        # bw_pix[i, line_final2] = 175
+        if bw_pix[i,line_final] < 25 or bw_pix[i,line_final2] < 25:
+            non_white.append(i)
+    
+    component = []
+    all_components = []
+    component_counter = 0
+    for i in range(len(non_white)-1):
+        if non_white[i+1] - non_white[i] > 160:      #0.12*width
+            component_counter += 1
+            component.append(non_white[i])
+            all_components.append(component)
+            component = [] 
+        else:
+            component.append(non_white[i])
+
+    if len(component) != 0:
+        all_components.append(component)
+
+
+    for i in range(len(all_components)):
+        name = 'component_' + str(i)
+        box = (int(all_components[i][0] - 0.05*width), int(line_final-0.25*height), int(all_components[i][len(all_components[i])-1]+0.05*width), int(line_final2+0.25*height))
+        region = im2.crop(box)
+        region.save(name, 'JPEG')
+    # dotname = 'dot_' + filename
+    # im.save(dotname)
+
 if __name__ == '__main__':
-    print 'hello'
+    line_rows = draw_horizontals('cp2_Doyung_Zoher_Test.jpg')
+    component_finder(line_rows,'hz_cp2_Doyung_Zoher_Test.jpg', 'cp2_Doyung_Zoher_Test.jpg')
+
