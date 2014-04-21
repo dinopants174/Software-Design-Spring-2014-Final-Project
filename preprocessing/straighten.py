@@ -203,6 +203,8 @@ def component_finder(line_rows, filename, original):
     avg_line = 0
     for line in line_rows:  #line_rows comes from Sarah's draw_horizontals function
         avg_line += line
+    if avg_line == 0:
+        return "There is no horizontal line drawn here because the image may not be straight enough"
     offset = 0.15*height
     line = int(float(avg_line)/len(line_rows))
     line_final = int((float(avg_line)/len(line_rows))-offset)
@@ -213,8 +215,6 @@ def component_finder(line_rows, filename, original):
 
     non_white = []
     for i in range(cols):
-        # bw_pix[i, line_final] = 175
-        # bw_pix[i, line_final2] = 175
         if bw_pix[i,line_final] < 25 or bw_pix[i,line_final2] < 25:
             non_white.append(i)
     
@@ -222,7 +222,7 @@ def component_finder(line_rows, filename, original):
     all_components = []
     component_counter = 0
     for i in range(len(non_white)-1):
-        if non_white[i+1] - non_white[i] > 160:      #0.12*width
+        if non_white[i+1] - non_white[i] > 0.12*width:      #0.12*width
             component_counter += 1
             component.append(non_white[i])
             all_components.append(component)
@@ -233,14 +233,15 @@ def component_finder(line_rows, filename, original):
     if len(component) != 0:
         all_components.append(component)
 
+    print len(all_components)
 
     for i in range(len(all_components)):
         name = 'component_' + str(i)
-        box = (int(all_components[i][0] - 0.03*width), int(line_final-0.25*height), int(all_components[i][len(all_components[i])-1]+0.03*width), int(line_final2+0.25*height))
+        box = (int(all_components[i][0] - 0.05*width), int(line_final-0.3*height), int(all_components[i][len(all_components[i])-1]+0.05*width), int(line_final2+0.3*height))
         region = im2.crop(box)
         region.save(name + ".jpg")
 
 if __name__ == '__main__':
-    line_rows = draw_horizontals('Doyung_Zoher_Test.jpg')
-    component_finder(line_rows,'hz_Doyung_Zoher_Test.jpg', 'cp_Doyung_Zoher_Test.jpg')
+    line_rows = draw_horizontals('test_2.jpg')
+    print component_finder(line_rows,'hz_test_2.jpg', 'cp_test_2.jpg')
 
