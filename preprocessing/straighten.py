@@ -186,7 +186,7 @@ def resize(filename):
     im = Image.open(filename)
     half = 0.25
     out = im.resize( [int(half * s) for s in im.size] )
-    small_name = 'small_' + filename
+    small_name = filename
     out.save(small_name)
 
 
@@ -222,7 +222,7 @@ def component_finder(line_rows, filename, original):
     all_components = []
     component_counter = 0
     for i in range(len(non_white)-1):
-        if non_white[i+1] - non_white[i] > 0.12*width:      #0.12*width
+        if non_white[i+1] - non_white[i] > 0.12*width:      #0.5*width
             component_counter += 1
             component.append(non_white[i])
             all_components.append(component)
@@ -233,7 +233,6 @@ def component_finder(line_rows, filename, original):
     if len(component) != 0:
         all_components.append(component)
 
-    print len(all_components)
 
     for i in range(len(all_components)):
         name = 'component_' + str(i)
@@ -242,6 +241,9 @@ def component_finder(line_rows, filename, original):
         region.save(name + ".jpg")
 
 if __name__ == '__main__':
-    line_rows = draw_horizontals('test_2.jpg')
-    print component_finder(line_rows,'hz_test_2.jpg', 'cp_test_2.jpg')
+    # for i in range(84,140):
+    #     resize('resistor'+str(i)+'.jpg')
+
+    line_rows = draw_horizontals('test_1.jpg')
+    print component_finder(line_rows,'hz_test_1.jpg', 'cp_test_1.jpg')
 
