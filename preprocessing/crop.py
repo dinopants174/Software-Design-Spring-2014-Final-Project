@@ -44,7 +44,7 @@ def all_crops(im):
     [l, r, t, b] = strip_array(a) # bounding dimensions
 
     # make black/white image to use as pixel source for cropped image
-    [save_bw_pix, rows, cols] = im_to_size_px(im, 138) # more visually appropriate threshold than for crop_bw_pix
+    [save_bw_pix, rows, cols] = im_to_size_px(im, 135) # more visually appropriate threshold than for crop_bw_pix
     
     # make new image, cropped size
     res = Image.new('L',(r-l, b-t)) # r-l = new width, b-t = new height
@@ -175,5 +175,5 @@ def save_image(im, filename):
 for testing
 ************'''
 if __name__ == '__main__':
-    filename = 'resistor134.jpg'
+    filename = 'resistor139.jpg'
     process(filename)

@@ -241,9 +241,6 @@ def component_finder(line_rows, filename, original):
         region.save(name + ".jpg")
 
 if __name__ == '__main__':
-    # for i in range(84,140):
-    #     resize('resistor'+str(i)+'.jpg')
-
     line_rows = draw_horizontals('test_1.jpg')
     print component_finder(line_rows,'hz_test_1.jpg', 'cp_test_1.jpg')
 
