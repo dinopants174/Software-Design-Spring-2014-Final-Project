@@ -18,7 +18,7 @@ from skimage.filter import threshold_otsu, gabor_filter
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
 from sklearn.cross_validation import train_test_split
@@ -200,7 +200,8 @@ def main():
         KNeighborsClassifier(),
         LogisticRegression(),
         SVC(kernel='linear'),
-        RandomForestClassifier()]
+        RandomForestClassifier(),
+        AdaBoostClassifier()]
 
     compareClassifiers(classifiers)
 
@@ -226,4 +227,36 @@ Average performance of RandomForestClassifier(bootstrap=True, compute_importance
             n_estimators=10, n_jobs=1, oob_score=False, random_state=None,
             verbose=0) when trained on pixels + histogram (nbins = 6): 0.941509433962
 [Finished in 26.6s]
+
+STDOUT: 1:56 4/24/2014
+Average performance of KNeighborsClassifier(algorithm=auto, leaf_size=30, metric=minkowski,
+           n_neighbors=5, p=2, weights=uniform) when trained on pixels + histogram (nbins = 6): 0.932075471698
+
+Average performance of LogisticRegression(C=1.0, class_weight=None, dual=False, fit_intercept=True,
+          intercept_scaling=1, penalty=l2, random_state=None, tol=0.0001) when trained on pixels + histogram (nbins = 6): 0.901886792453
+
+Average performance of SVC(C=1.0, cache_size=200, class_weight=None, coef0=0.0, degree=3, gamma=0.0,
+  kernel=linear, max_iter=-1, probability=False, random_state=None,
+  shrinking=True, tol=0.001, verbose=False) when trained on pixels + histogram (nbins = 6): 0.909433962264
+
+Average performance of RandomForestClassifier(bootstrap=True, compute_importances=None,
+            criterion=gini, max_depth=None, max_features=auto,
+            min_density=None, min_samples_leaf=1, min_samples_split=2,
+            n_estimators=10, n_jobs=1, oob_score=False, random_state=None,
+            verbose=0) when trained on pixels + histogram (nbins = 6): 0.962264150943
+
+Average performance of AdaBoostClassifier(algorithm=SAMME.R,
+          base_estimator=DecisionTreeClassifier(compute_importances=None, criterion=gini, max_depth=1,
+            max_features=None, min_density=None, min_samples_leaf=1,
+            min_samples_split=2, random_state=None, splitter=best),
+          base_estimator__compute_importances=None,
+          base_estimator__criterion=gini, base_estimator__max_depth=1,
+          base_estimator__max_features=None,
+          base_estimator__min_density=None,
+          base_estimator__min_samples_leaf=1,
+          base_estimator__min_samples_split=2,
+          base_estimator__random_state=None, base_estimator__splitter=best,
+          learning_rate=1.0, n_estimators=50, random_state=None) when trained on pixels + histogram (nbins = 6): 0.956603773585
+
 """
+
