@@ -159,7 +159,7 @@ def component_clf_sys(nbins, clf):
     """
     X, y = loadTrain(NUM_TRAIN, nbins)
     X, y = (np.array(X), np.array(y))
-    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.80)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.10)
     
     # Separate into Images and Histograms
     hist_start = -nbins
@@ -193,7 +193,7 @@ def compareClassifiers(clfs):
     nbins = 6
     for clf in clfs:
         avg_perf = avg_perf_component_clf_sys(nruns, nbins, clf)
-        print "\nAverage performance of {} when trained on pixels + histogram (nbins = {}): ".format(clf.__str__(), nbins) + str(avg_perf)
+        print "\nAverage performance of {} when trained on histogram (nbins = {}): ".format(clf.__str__(), nbins) + str(avg_perf)
 
 def main():
     classifiers = [
@@ -257,6 +257,6 @@ Average performance of AdaBoostClassifier(algorithm=SAMME.R,
           base_estimator__min_samples_split=2,
           base_estimator__random_state=None, base_estimator__splitter=best,
           learning_rate=1.0, n_estimators=50, random_state=None) when trained on pixels + histogram (nbins = 6): 0.956603773585
-
+[Finished in 134.0s]
 """
 

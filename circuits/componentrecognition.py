@@ -179,9 +179,9 @@ def avg_perf_component_clf_sys(nruns, nbins, clf):
 def compareClassifiers(clfs):
     """ Caculates average performance of the component classification system for given ML Classifiers """
     nruns = 3
-    nbins = 3
+    nbins = 7
     for clf in clfs:
-        avg_perf = avg_perf_component_clf_sys(3, 3, clf)
+        avg_perf = avg_perf_component_clf_sys(nruns, nbins, clf)
         print "\nAverage performance of {} when trained on pixels + histogram (nbins = {}): ".format(clf.__str__(), nbins) + str(avg_perf)
 
 def main():
@@ -190,7 +190,6 @@ def main():
         SVC(kernel='linear',C=0.0001)]
 
     compareClassifiers(classifiers)
-
 
 if __name__ == '__main__':
     main()
