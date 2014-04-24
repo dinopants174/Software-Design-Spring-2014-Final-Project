@@ -133,6 +133,67 @@ def draw_verticals(filename):
     vtname = 'vt_' + filename
     im.save(vtname)
     return line_cols
+    
+def draw_lines(filename):
+    a = read_image(filename)
+    (rows, cols) = a.shape
+    im = Image.open('cp_'+filename)
+    bw_pix = im.load()
+    
+    # loop through rows checking for darkness
+    line_rows = []
+    for r in range(rows):
+        val = numpy.sum(a[r,:])
+        if val < 0.8*cols: # hard-coded, as of now
+            line_rows.append(r)
+            
+    # remove similar values in line_rows
+    main_rows = []
+    for row in line_rows:
+        accountedFor = False
+        for i in range(row+50):
+            if i in main_rows:
+                accountedFor = True
+        if accountedFor == False:
+            main_rows.append(i)
+            
+    # draw dark rows
+    for r in main_rows:
+        for c in range(cols-1):
+            bw_pix[c,r] = 175
+            
+    # loop through columns checking for darkness
+    line_cols = []
+    for c in range(cols):
+        val = numpy.sum(a[:,c])
+        if val < 0.8*rows: # hard-coded, as of now
+            line_cols.append(c)
+            
+    # remove similar values in line_rows
+    main_cols = []
+    for col in line_cols:
+        accountedFor = False
+        for i in range(col+50):
+            if i in main_cols:
+                accountedFor = True
+        if accountedFor == False:
+            main_cols.append(i)
+            
+    # draw dark columns
+    for c in main_cols:
+        for r in range(rows-1):
+            bw_pix[c,r] = 175
+            
+    lnname = 'ln_' + filename
+    im.save(lnname)
+    return [main_rows, main_cols]
+    
+def intersections(line_rows, line_cols):    
+    i = []
+    for row in line_rows:
+        for col in line_cols:
+            i.append((row, col))
+    return i   
 
 def darkness(line):
     ''' computes average darkness of a numpy array of 1's and 0's
@@ -243,4 +304,7 @@ def component_finder(line_rows, filename, original):
 if __name__ == '__main__':
     line_rows = draw_horizontals('test_1.jpg')
     print component_finder(line_rows,'hz_test_1.jpg', 'cp_test_1.jpg')
-
+    
+    # stashed changes
+    [r,c] = draw_lines('IMAG0722.jpg')
+    print intersections(r,c)
