@@ -25,6 +25,7 @@
         <section id="downloads" class="clearfix">
           <a href="#project-proposal" class="button"><span>Project Proposal</span></a>
           <a href="#design-proposal" class="button"><span>Design Proposal</span></a>
+          <a href="#design-refinement" class="button"><span>Design Refinement</span></a>
           <!--<a href="https://github.com/dinopants174/Software-Design-Spring-2014-Final-Project/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
           <a href="https://github.com/dinopants174/Software-Design-Spring-2014-Final-Project" id="view-on-github" class="button"><span>View on GitHub</span></a>-->
         </section>
@@ -32,7 +33,35 @@
         <hr>
 
         <section id="main_content">
-                    <h3>
+
+<h3>
+<a name ="design-refinement" class="anchor" href="#design-refinement"><span class="octicon octicon-link"></span></a>Design Refinement</h3>
+
+<p>
+  <strong>Design Pipeline</strong>
+  <br>
+Our software takes an image of a hand-drawn circuit diagram as input. First, we look for wires in the diagram by scanning the image for rows and columns with an average darkness darker than a defined threshold; then, we identify intersections and separate the diagram into line segments. We proceed to rotate each segment so that it is horizontal as this allows us to run our component finder. We move left to right along each line looking for irregularities. Upon finding an irregularity, we crop an image of the located component from the diagram, and we use our component classifier to identify what component is there. We store the connections between and the locations of the components and segments, and finally we produce our initial goal of a nicely rendered circuit diagram while also producing a list of objects that the RESISTOR team can use.
+</p>
+
+<p>
+  <strong>Design Story</strong>
+  <br>
+After talking to the ninjas about performing OCR on a whiteboard and generating notes based on the content on the whiteboard, we decided that this was too general a project. Instead, we broke up into two teams in order to pursue two different ideas involving OCR. One group worked on compiling handwritten code while another worked on a hand-drawn circuit diagram renderer. After beta-testing each project for a week, we made the decision to focus entirely on the circuit diagram project. This decision was made based on code that we modified from research papers which functioned incredibly well. It was also due to the struggle of retraining the module we were using, Tesseract, to perform OCR on handwriting and the fact that Tesseract was trained off of English and was not recognizing code. We were able to reach the minimum deliverables we had for both projects and then decided that the circuit diagram project just had much more room to grow and do interesting work than the hand-written code compiler.
+</p>
+
+<p>
+  <strong>Data Structure</strong>
+  <br>
+Through our image segmentation algorithm, we produce a list of line segment elements. Each line segment element is an object which stores the connections the segment has, the components it contains, and likely its relative location in the frame (vertical vs. horizontal, left side vs. right We will be able to refactor our data structure into a structure which interfaces with the RESISTOR team (they’re producing breadboard layouts from graphical representations of circuit diagrams): they don’t need any of the relative location information, but everything related to connections is relevant to their project as well as to ours.
+</p>
+
+<p>
+  <strong>Development Plan</strong>
+  <br>
+In terms of further development, we have four main tasks we need to complete. We need to create a segmentation algorithm that will read a circuit diagram and separate it based on intersections. Sarah has been working primarily on this algorithm. We also need to retool and refactor our component classifier such that it works with the black and white thresholded images that our component finder outputs. This will primarily be Ryan’s responsibility. Our third goal is to construct the data type mentioned above and produce a list of these segment objects where each object contains the connections of each segment. We will probably pursue this as a group, integrating all the data we have into these objects. Finally, we want to look at a single segment and produce a clean, rendered drawing of that segment, containing appropriate lines, resistors, and capacitors which is what Doyung and Zoher will work on.
+</p>
+
+<h3>
 <a name ="design-proposal" class="anchor" href="#design-proposal"><span class="octicon octicon-link"></span></a>Design Proposal</h3>
 
 <p>
