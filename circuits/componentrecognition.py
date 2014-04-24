@@ -214,9 +214,9 @@ def avg_perf_component_clf_sys(nruns, nbins, clf):
 def compareClassifiers(clfs):
     """ Caculates average performance of the component classification system for given ML Classifiers """
     nruns = 3
-    nbins = 3
+    nbins = 7
     for clf in clfs:
-        avg_perf = avg_perf_component_clf_sys(3, 3, clf)
+        avg_perf = avg_perf_component_clf_sys(nruns, nbins, clf)
         print "\nAverage performance of {} when trained on pixels + histogram (nbins = {}): ".format(clf.__str__(), nbins) + str(avg_perf)
 
 def main():
@@ -227,7 +227,7 @@ def main():
     pkl_names = [
         "logistic_regression_gridsearched.pkl",
         "svc_linear_gridsearched.pkl"]
-
+        
     print "\nStoring Classifiers..."
     for clf, pkl_name in zip(classifiers, pkl_names):
         _ = store_clf(5, clf, pkl_name)

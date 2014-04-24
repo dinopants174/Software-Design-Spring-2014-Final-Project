@@ -7,8 +7,7 @@ Created on Thu Apr  3 16:30:05 2014
 
 import crop
 import numpy
-from PIL import Image, ImageDraw
-import pprint
+from PIL import Image
 
 '''***********
 file reading methods
@@ -187,7 +186,7 @@ def resize(filename):
     im = Image.open(filename)
     half = 0.25
     out = im.resize( [int(half * s) for s in im.size] )
-    small_name = 'small_' + filename
+    small_name = filename
     out.save(small_name)
 
 
@@ -204,6 +203,8 @@ def component_finder(line_rows, filename, original):
     avg_line = 0
     for line in line_rows:  #line_rows comes from Sarah's draw_horizontals function
         avg_line += line
+    if avg_line == 0:
+        return "There is no horizontal line drawn here because the image may not be straight enough"
     offset = 0.15*height
     line = int(float(avg_line)/len(line_rows))
     line_final = int((float(avg_line)/len(line_rows))-offset)
@@ -212,12 +213,8 @@ def component_finder(line_rows, filename, original):
     a = read_image(filename)
     (rows, cols) = a.shape
 
-    whitespace = []
     non_white = []
-    draw = ImageDraw.Draw(im)
     for i in range(cols):
-        # bw_pix[i, line_final] = 175
-        # bw_pix[i, line_final2] = 175
         if bw_pix[i,line_final] < 25 or bw_pix[i,line_final2] < 25:
             non_white.append(i)
     
@@ -225,7 +222,7 @@ def component_finder(line_rows, filename, original):
     all_components = []
     component_counter = 0
     for i in range(len(non_white)-1):
-        if non_white[i+1] - non_white[i] > 160:      #0.12*width
+        if non_white[i+1] - non_white[i] > 0.12*width:      #0.5*width
             component_counter += 1
             component.append(non_white[i])
             all_components.append(component)
@@ -241,11 +238,9 @@ def component_finder(line_rows, filename, original):
         name = 'component_' + str(i)
         box = (int(all_components[i][0] - 0.03*width), int(line_final-0.25*height), int(all_components[i][len(all_components[i])-1]+0.03*width), int(line_final2+0.25*height))
         region = im2.crop(box)
-        region.save(name, 'JPEG')
-    # dotname = 'dot_' + filename
-    # im.save(dotname)
+        region.save(name + ".jpg")
 
 if __name__ == '__main__':
-    line_rows = draw_horizontals('cp2_Doyung_Zoher_Test.jpg')
-    component_finder(line_rows,'hz_cp2_Doyung_Zoher_Test.jpg', 'cp2_Doyung_Zoher_Test.jpg')
+    line_rows = draw_horizontals('test_1.jpg')
+    print component_finder(line_rows,'hz_test_1.jpg', 'cp_test_1.jpg')
 
