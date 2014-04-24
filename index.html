@@ -52,12 +52,16 @@ After talking to the ninjas about performing OCR on a whiteboard and generating 
   <strong>Data Structure</strong>
   <br>
 Through our image segmentation algorithm, we produce a list of line segment elements. Each line segment element is an object which stores the connections the segment has, the components it contains, and likely its relative location in the frame (vertical vs. horizontal, left side vs. right We will be able to refactor our data structure into a structure which interfaces with the RESISTOR team (they’re producing breadboard layouts from graphical representations of circuit diagrams): they don’t need any of the relative location information, but everything related to connections is relevant to their project as well as to ours.
+
 </p>
 
 <p>
   <strong>Development Plan</strong>
   <br>
 In terms of further development, we have four main tasks we need to complete. We need to create a segmentation algorithm that will read a circuit diagram and separate it based on intersections. Sarah has been working primarily on this algorithm. We also need to retool and refactor our component classifier such that it works with the black and white thresholded images that our component finder outputs. This will primarily be Ryan’s responsibility. Our third goal is to construct the data type mentioned above and produce a list of these segment objects where each object contains the connections of each segment. We will probably pursue this as a group, integrating all the data we have into these objects. Finally, we want to look at a single segment and produce a clean, rendered drawing of that segment, containing appropriate lines, resistors, and capacitors which is what Doyung and Zoher will work on.
+<br>
+Below is a diagram of this segmentation process, taking a circuit diagram and breaking it up into segments, each of which can be individually processed.
+<img src="circuitrepresentation.PNG">
 </p>
 
 <h3>
