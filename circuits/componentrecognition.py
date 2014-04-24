@@ -24,7 +24,7 @@ from sklearn.svm import SVC
 from sklearn.cross_validation import train_test_split
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
-
+from sklearn.externals import joblib
 
 # --- Linux vs Windows Data Directory Compatibility
 
@@ -34,14 +34,16 @@ if OS == 'nt':
     TRAIN_DATA_DIR = os.path.join(os.path.abspath('.'),'data\\')
 else:
     TRAIN_DATA_DIR = os.path.join(os.path.abspath('.'),'data/')
+    TEST_DATA_DIR = os.path.join(os.path.abspath('.'), 'tests/')
     
 NUM_TRAIN = len(os.listdir(TRAIN_DATA_DIR))
+NUM_TEST = len(os.listdir(TEST_DATA_DIR))
 
 class Preprocessing:
     
     @staticmethod
     def binary_from_thresh(img):
-        """ Base function for converting to binary using a threshold """
+        """ Base function for converting to bineary using a threshold """
         thresh = threshold_otsu(img)
         binary = img < thresh
         return binary
@@ -111,8 +113,8 @@ class FeatureExtraction:
         backslash = Preprocessing.backslash_filter(img)
         return np.array(FeatureExtraction.mean_exposure_hist(nbins,frontslash,backslash))
 
-def getTrainFilenames(n):
-    filenames = os.listdir(TRAIN_DATA_DIR)
+def getFilenames(n, data_dir):
+    filenames = os.listdir(data_dir)
     np.random.shuffle(filenames)
     filenames = filenames[:n]
     return filenames
@@ -128,43 +130,76 @@ def loadImage(filename, nbins):
     image = image.flatten()
     return np.hstack((image, h)) # h takes up the last nbins rows of the feature vector
 
-def loadTrain(n, nbins, verbose=False):
-    filenames = getTrainFilenames(n)
+def loadData(n, data_dir, nbins):
+    filenames = getFilenames(n, data_dir)
     is_resistor = isResistorFromFilename(filenames)
     I = []
-    if verbose:
-        for i in range(n):
-            fn = filenames[i]
-            print os.sys.stdout.write('.')
-            I.append(loadImage(TRAIN_DATA_DIR + fn, nbins))
-    else:
-        for i in range(n):
-            fn = filenames[i]
-            I.append(loadImage(TRAIN_DATA_DIR + fn, nbins))      
+    for i in range(n):
+        fn = filenames[i]
+        I.append(loadImage(data_dir + fn, nbins))
     return I, is_resistor
 
+def loadTrain(n, nbins):
+    """ Loads n files from the training data directory.
+
+    returns: (Image Features, Target Labels)
+    """
+    return loadData(n, TRAIN_DATA_DIR, nbins)
+
+def loadTest(n, nbins):
+    """ Loads n files from the tests data directory.
+
+    returns: (Image Features, Target Labels)
+    """
+    return loadData(n, TEST_DATA_DIR, nbins)
+
+
 # Component Classification System
+
 
 def component_clf_sys(nbins, clf):
     """ returns an accuracy score for X (pixels + hist)
     
     nbins: number of bins for exposure histogram of the gabor filtered images
-    clf: an instantiated classifier object
+    clf: an instantiated classifier object 
     """
     X, y = loadTrain(NUM_TRAIN, nbins)
-    X, y = (np.array(X), np.array(y))
-    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.66)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8)
     
     clf.fit(X_train, y_train)
-    
+
     y_pred = clf.predict(X_test)
     
     accuracy = accuracy_score(y_test,y_pred)
     
     return accuracy
 
+def store_clf(nbins, clf, filename):
+    """ Stores the trained classifier on disk.
+
+    nbins: number of bins for exposure histogram of the gabor filtered images
+    clf: an instantiated classifier object
+    filename: file str to write to
+
+    returns: trained classifier 
+    """
+    X, y = loadTrain(NUM_TRAIN, nbins)
+    
+    clf.fit(X,y)
+    
+    joblib.dump(clf, filename, 9)
+
+    return clf
+
+def load_clf(filename):
+    """ loads a trained classifier from file
+
+    returns: trained classifier as a sklearn model object
+    """
+    return joblib.load(filename)
+
 def avg_perf_component_clf_sys(nruns, nbins, clf):
-    """ Caculates average accuracy performance from nruns of the classifier system
+    """ Calculates average accuracy performance from nruns of the classifier system
     
     nruns: number of runs
     nbins: number of bins for the exposure histogram
@@ -189,7 +224,18 @@ def main():
         LogisticRegression(C=0.0001),
         SVC(kernel='linear',C=0.0001)]
 
-    compareClassifiers(classifiers)
+    pkl_names = [
+        "logistic_regression_gridsearched.pkl",
+        "svc_linear_gridsearched.pkl"]
+        
+    print "\nStoring Classifiers..."
+    for clf, pkl_name in zip(classifiers, pkl_names):
+        _ = store_clf(5, clf, pkl_name)
 
 if __name__ == '__main__':
-    main()
+    # main()
+    X_test, y_test = loadTest(NUM_TEST, 5)
+    clf = load_clf("logistic_regression_gridsearched.pkl")
+    y_pred = clf.predict(X_test)
+    accuracy = accuracy_score(y_test,y_pred)
+    print "Accuracy Score from Tests: " + str(accuracy)

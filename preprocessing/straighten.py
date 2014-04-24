@@ -236,7 +236,7 @@ def component_finder(line_rows, filename, original):
 
     for i in range(len(all_components)):
         name = 'component_' + str(i)
-        box = (int(all_components[i][0] - 0.05*width), int(line_final-0.3*height), int(all_components[i][len(all_components[i])-1]+0.05*width), int(line_final2+0.3*height))
+        box = (int(all_components[i][0] - 0.03*width), int(line_final-0.25*height), int(all_components[i][len(all_components[i])-1]+0.03*width), int(line_final2+0.25*height))
         region = im2.crop(box)
         region.save(name + ".jpg")
 
