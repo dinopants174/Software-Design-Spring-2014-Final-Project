@@ -27,6 +27,7 @@ from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 from sklearn.externals import joblib
 
+from utils import Utils
 
 # --- Linux vs Windows Data Directory Compatibility
 
@@ -119,75 +120,57 @@ class FeatureExtraction:
             FeatureExtraction.denom, FeatureExtraction.freq, FeatureExtraction.bw)
         return np.array(FeatureExtraction.mean_exposure_hist(nbins,frontslash,backslash))
 
-def getTrainFilenames(n):
-    filenames = os.listdir(TRAIN_DATA_DIR)
-    np.random.shuffle(filenames)
-    filenames = filenames[:n]
-    return filenames
+    @staticmethod
+    def moments_hu(img):
+        """
+        returns log transformed Hu Moments
+        args:
+            img: M x N array
+        """
+        raw = cv2.HuMoments(cv2.moments(img))
+        log_trans = -np.sign(raw)*np.log10(np.abs(raw))
+        return log_trans.flatten()
 
-def isResistorFromFilename(filenames):
-    is_resistor = [fn[0]=="r" for fn in filenames]
-    return is_resistor
+class Data:
 
-def loadImageFeatures(filename,nbins):
-    image = loadImage(filename)
-    h = FeatureExtraction.mean_exposure_hist_from_gabor(image,nbins)
-    image = image.flatten()
-    return np.hstack((image, h)) # h takes up the last nbins rows of the feature vector
+    @staticmethod
+    def getTrainFilenames(n):
+        filenames = os.listdir(TRAIN_DATA_DIR)
+        np.random.shuffle(filenames)
+        filenames = filenames[:n]
+        return filenames
 
-def loadImage(filename):
-    image = cv2.imread(filename, cv2.CV_LOAD_IMAGE_GRAYSCALE) 
-    return Preprocessing.standardize_shape(image)
+    @staticmethod
+    def isResistorFromFilename(filenames):
+        is_resistor = [fn[0]=="r" for fn in filenames]
+        return is_resistor
+    
+    @staticmethod
+    def loadImageFeatures(filename,nbins):
+        image = Data.loadImage(filename)
+        hu_moments = FeatureExtraction.moments_hu(image)
+        gabor_hist = FeatureExtraction.mean_exposure_hist_from_gabor(image,nbins)
+    
+        return Utils.hStackMatrices(hu_moments, gabor_hist)
 
-def loadTrain(n, nbins, verbose=False):
-    filenames = getTrainFilenames(n)
-    is_resistor = isResistorFromFilename(filenames)
-    I = []
-    if verbose:
+    @staticmethod    
+    def loadImage(filename):
+        image = cv2.imread(filename, cv2.CV_LOAD_IMAGE_GRAYSCALE) 
+        return Preprocessing.standardize_shape(image)
+
+    @staticmethod
+    def loadTrain(n, nbins):
+        filenames = Data.getTrainFilenames(n)
+
+        X = None
+        
         for i in range(n):
             fn = filenames[i]
-            print os.sys.stdout.write('.')
-            I.append(loadImageFeatures(TRAIN_DATA_DIR + fn, nbins))
-    else:
-        for i in range(n):
-            fn = filenames[i]
-            I.append(loadImageFeatures(TRAIN_DATA_DIR + fn, nbins))      
-    return I, is_resistor
+            X = Utils.vStackMatrices(X, Data.loadImageFeatures(TRAIN_DATA_DIR + fn, nbins))
+        
+        y = Data.isResistorFromFilename(filenames)
 
-# Component Classification System
-
-def store_clf(nbins, clf, filename):
-    """ Stores the trained classifier on disk.
-
-    nbins: number of bins for exposure histogram of the gabor filtered images
-    clf: an instantiated classifier object
-    filename: file str to write to
-
-    returns: trained classifier 
-    """
-    X, y = loadTrain(NUM_TRAIN, nbins)
-    
-    clf.fit(X,y)
-    
-    joblib.dump(clf, filename, 9)
-
-    return clf
-
-def load_clf(filename):
-    """ loads a trained classifier from file
-
-    returns: trained classifier as a sklearn model object
-    """
-    return joblib.load(filename)
-
-def loadFeatures(nbins):
-    X, y = loadTrain(NUM_TRAIN, nbins)
-    X, y = (np.array(X), np.array(y))
-
-    hist_start = -nbins
-    h = X[:,hist_start:]
-
-    return h, y
+        return np.array(X), np.array(y)
 
 def component_clf_sys(nbins, clf):
     """ returns an accuracy score for X (pixels + hist)
@@ -196,12 +179,12 @@ def component_clf_sys(nbins, clf):
     clf: an instantiated classifier object
     """
     
-    h, y = loadFeatures(nbins)
-    h_train, h_test, y_train, y_test = train_test_split(h, y, train_size=0.50)
+    X, y = Data.loadTrain(NUM_TRAIN, nbins)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.50)
     
-    clf.fit(h_train, y_train)
+    clf.fit(X_train, y_train)
     
-    y_pred = clf.predict(h_test)
+    y_pred = clf.predict(X_test)
     
     accuracy = accuracy_score(y_test,y_pred)
     
@@ -244,17 +227,18 @@ def main1():
 
 def main2():
     # 0.97 gridsearch optimized
-    h, y = loadFeatures(17)
+    X, y = Data.loadTrain(NUM_TRAIN, nbins=5)
 
-    clf = RandomForestClassifier(
-        bootstrap=False,
-        min_samples_leaf=1,
-        min_samples_split=1,
-        criterion='entropy',
-        max_features=3,
-        max_depth=None)
+    clf = RandomForestClassifier()
+    # clf = RandomForestClassifier(
+    #     bootstrap=False,
+    #     min_samples_leaf=1,
+    #     min_samples_split=1,
+    #     criterion='entropy',
+    #     max_features=3,
+    #     max_depth=None)
 
-    scores = cross_val_score(clf, h, y, cv=5)
+    scores = cross_val_score(clf, X, y, cv=5)
 
     print "raw scores: \n" + str(scores)
 
@@ -262,7 +246,7 @@ def main2():
 
 
 def main3():
-    h, y = loadFeatures(17)
+    X, y = Data.loadTrain(NUM_TRAIN, nbins=17)
 
     clf = RandomForestClassifier(
         bootstrap=False,
@@ -272,12 +256,12 @@ def main3():
         max_features=3,
         max_depth=None)
 
-    clf.fit(h, y)
+    clf.fit(X, y)
 
     joblib.dump(clf, "RF_ResCap.pkl",9)
 
 if __name__ == '__main__':
-    main3()
+    main2()
 
 """
 STDOUT: 22:00 4/23/2014
