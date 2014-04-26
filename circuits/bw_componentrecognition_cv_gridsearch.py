@@ -29,22 +29,25 @@ def main():
     N_FEATURES = N_BINS + N_HU_MOMENTS
 
     X, y = bw_componentrecognition.Data.loadTrain(NUM_TRAIN, N_BINS)
-
+	
     scaler = preprocessing.StandardScaler().fit(X)
     X = scaler.transform(X)
     
     clfs = [
-        RandomForestClassifier(n_estimators=20),
+        SVC(C=100, kernel='rbf', gamma=0.1),
+        RandomForestClassifier(n_estimators=30),
         ]
     
     param_dists = [
+        {"C":[1e-4, 1e-2, 1e-0, 1e2, 1e3, 1e4],
+         "gamma":[1e-5,1e-4,1e-3,1e-2,1e-1,1e0]},
+            
         {"max_depth": [10, 5, 3, None],
           "max_features": sp_randint(1, 11),
           "min_samples_split": sp_randint(1, 11),
           "min_samples_leaf": sp_randint(1, 11),
           "bootstrap": [True, False],
-          "criterion": ["gini", "entropy"]},]
-        
+          "criterion": ["gini", "entropy"]}]
     
     for clf, param_dist in zip(clfs, param_dists):
         # run randomized search
@@ -56,6 +59,8 @@ def main():
         random_search.fit(X, y)
 
         report(random_search.grid_scores_)
+        
+        break
 
 if __name__ == '__main__':
     main()

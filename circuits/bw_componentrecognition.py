@@ -22,6 +22,8 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, GradientBoostingClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
+
+from sklearn.preprocessing import StandardScaler
 from sklearn.cross_validation import train_test_split, cross_val_score
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
@@ -203,7 +205,7 @@ def avg_perf_component_clf_sys(nruns, nbins, clf):
         perf.append(accuracy)
     return np.mean(perf)
 
-def compareClassifiers(clfs):
+def compareClassifiers(clfs, nbins):
     """ Caculates average performance of the component classification system for given ML Classifiers """
     nruns = 10
     nbins = 6
@@ -227,41 +229,35 @@ def main1():
 
 def main2():
     # 0.97 gridsearch optimized
-    X, y = Data.loadTrain(NUM_TRAIN, nbins=5)
+    X, y = Data.loadTrain(NUM_TRAIN, nbins=23)
 
-    clf = RandomForestClassifier()
-    # clf = RandomForestClassifier(
-    #     bootstrap=False,
-    #     min_samples_leaf=1,
-    #     min_samples_split=1,
-    #     criterion='entropy',
-    #     max_features=3,
-    #     max_depth=None)
+    scaler = StandardScaler().fit(X)
+    X = scaler.transform(X)
 
-    scores = cross_val_score(clf, X, y, cv=5)
+    classifiers = [
+        SVC(C=100, kernel='rbf', gamma=0.1),
+        LogisticRegression(),
+        RandomForestClassifier(n_estimators=20),
+        GradientBoostingClassifier(n_estimators=100)]
 
-    print "raw scores: \n" + str(scores)
-
-    print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+    for clf in classifiers:
+        scores = cross_val_score(clf, X, y, cv=5)
+        print str(clf) + "\n"
+        print "raw scores: \n" + str(scores)
+        print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
 
 
 def main3():
-    X, y = Data.loadTrain(NUM_TRAIN, nbins=17)
+    X, y = Data.loadTrain(NUM_TRAIN, nbins=23)
 
-    clf = RandomForestClassifier(
-        bootstrap=False,
-        min_samples_leaf=1,
-        min_samples_split=1,
-        criterion='entropy',
-        max_features=3,
-        max_depth=None)
+    clf = SVC(C=100, kernel='rbf', gamma=0.1)
 
     clf.fit(X, y)
 
-    joblib.dump(clf, "RF_ResCap.pkl",9)
+    joblib.dump(clf, "SVC_ResCap.pkl",9)
 
 if __name__ == '__main__':
-    main2()
+    main3()
 
 """
 STDOUT: 22:00 4/23/2014
@@ -313,5 +309,14 @@ Average performance of AdaBoostClassifier(algorithm=SAMME.R,
           base_estimator__random_state=None, base_estimator__splitter=best,
           learning_rate=1.0, n_estimators=50, random_state=None) when trained on pixels + histogram (nbins = 6): 0.956603773585
 [Finished in 134.0s]
+
+
+# clf = RandomForestClassifier(
+    #     bootstrap=False,
+    #     min_samples_leaf=1,
+    #     min_samples_split=1,
+    #     criterion='entropy',
+    #     max_features=3,
+    #     max_depth=None)
 """
 
