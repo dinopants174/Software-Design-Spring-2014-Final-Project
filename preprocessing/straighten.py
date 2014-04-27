@@ -273,6 +273,7 @@ def component_finder(line_rows, filename, original):
     
     a = read_image(filename)
     (rows, cols) = a.shape
+    # (rows, cols) = im.shape
 
     non_white = []
     for i in range(cols):
@@ -283,7 +284,7 @@ def component_finder(line_rows, filename, original):
     all_components = []
     component_counter = 0
     for i in range(len(non_white)-1):
-        if non_white[i+1] - non_white[i] > 0.12*width:      #0.5*width
+        if non_white[i+1] - non_white[i] > 0.12*width:
             component_counter += 1
             component.append(non_white[i])
             all_components.append(component)
@@ -294,17 +295,39 @@ def component_finder(line_rows, filename, original):
     if len(component) != 0:
         all_components.append(component)
 
-
     for i in range(len(all_components)):
         name = 'component_' + str(i)
-        box = (int(all_components[i][0] - 0.03*width), int(line_final-0.25*height), int(all_components[i][len(all_components[i])-1]+0.03*width), int(line_final2+0.25*height))
+        box = (int(all_components[i][0] - 0.02*width), int(line_final-0.2*height), int(all_components[i][len(all_components[i])-1]+0.02*width), int(line_final2+0.2*height))
         region = im2.crop(box)
         region.save(name + ".jpg")
 
+def draw_circuit(component_id_list):
+    im = Image.open('resistor.png')
+    width, height = im.size
+    num_of_images = len(component_id_list)*2 +1 
+    fin_segment = Image.new('L', (num_of_images*width , height), color=255)
+    x_coord = 0
+    j = 0
+    for i in range(1, num_of_images+1):
+        if i%2 != 0:
+            fin_segment.paste(Image.open('line.png'), box=(x_coord*700, 0))
+            x_coord += 1
+        if i%2 == 0:
+            fin_segment.paste(Image.open(component_id_list[j]+'.png'), box = (x_coord*700, 0))
+            x_coord += 1
+            j += 1
+    fin_segment.show()
+    
+
+
+
 if __name__ == '__main__':
-    line_rows = draw_horizontals('test_1.jpg')
-    print component_finder(line_rows,'hz_test_1.jpg', 'cp_test_1.jpg')
+    # line_rows = draw_horizontals('test_2.jpg')
+    # component_finder(line_rows,'hz_test_2.jpg', 'cp_test_2.jpg')
+    ryan_list = ['resistor', 'capacitor']
+    draw_circuit(ryan_list)
+
     
     # stashed changes
-    [r,c] = draw_lines('IMAG0722.jpg')
-    print intersections(r,c)
+    # [r,c] = draw_lines('IMAG0722.jpg')
+    # print intersections(r,c)
