@@ -9,6 +9,8 @@ import crop
 import numpy
 from PIL import Image
 
+from bw_componentrecognition import ComponentClassifier
+
 '''***********
 file reading methods
 ***********'''
@@ -321,10 +323,9 @@ def draw_circuit(component_id_list):
 if __name__ == '__main__':
     line_rows = draw_horizontals('test_2.jpg')
     all_comps = component_finder(line_rows, 'cp_test_2.jpg')
-    print len(all_comps)
     # component_list = component_classifier(list_of_images)
-    #ryan_list = ['capacitor', 'resistor', 'resistor']
-    #draw_circuit(ryan_list)
+    ryan_list = ComponentClassifier.predict(all_comps)
+    draw_circuit(ryan_list)
 
     
     # stashed changes
