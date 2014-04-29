@@ -23,7 +23,7 @@ from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, Gradien
 from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
 
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, Normalizer
 from sklearn.cross_validation import train_test_split, cross_val_score
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
@@ -174,6 +174,38 @@ class Data:
 
         return np.array(X), np.array(y)
 
+class ComponentClassifier:
+
+    @staticmethod
+    def predict(images, clf=None, nbins=23):
+        """ 
+        args:
+            images: list of PIL images
+            clf: classifier object (default = None).  Will load automatically
+                 if None
+            nbins: number of bins for the exposure histogram.  This is purely
+                   dependent on number of bins the classifier was trained on
+        returns:
+            list of component labels corresponding to each element in images
+        """
+        Xs = []
+
+        for image in images:
+            image = Preprocessing.standardize_shape(image)
+            hu_moments = FeatureExtraction.moments_hu(image)
+            gabor_hist = FeatureExtraction.mean_exposure_hist_from_gabor(image,nbins)
+            Xs.append(Utils.hStackMatrices(hu_moments, gabor_hist))
+
+        classifier = joblib.load('SVC_ResCap.pkl') if clf is None else clf
+
+        preds = []
+
+        for X in Xs:
+            preds.extend(classifier.predict(X))
+
+        return [Utils.map_label_to_str(pred) for pred in preds]
+
+
 def component_clf_sys(nbins, clf):
     """ returns an accuracy score for X (pixels + hist)
     
@@ -233,10 +265,13 @@ def main2():
 
     scaler = StandardScaler().fit(X)
     X = scaler.transform(X)
-
+    
+    normalizer = Normalizer().fit(X)
+    X = normalizer.transform(X)
+    
     classifiers = [
         SVC(C=100, kernel='rbf', gamma=0.1),
-        LogisticRegression(),
+        SVC(C=100, kernel='rbf', gamma=1.0),
         RandomForestClassifier(n_estimators=20),
         GradientBoostingClassifier(n_estimators=100)]
 
@@ -249,15 +284,21 @@ def main2():
 
 def main3():
     X, y = Data.loadTrain(NUM_TRAIN, nbins=23)
-
-    clf = SVC(C=100, kernel='rbf', gamma=0.1)
+    
+    scaler = StandardScaler().fit(X)
+    X = scaler.transform(X)
+    
+    normalizer = Normalizer().fit(X)
+    X = normalizer.transform(X)
+    
+    clf = SVC(C=100, kernel='rbf', gamma=1.0)
 
     clf.fit(X, y)
 
-    joblib.dump(clf, "SVC_ResCap.pkl",9)
+    joblib.dump(clf, "SVC_ResCap_ScaledNormalized.pkl",9)
 
 if __name__ == '__main__':
-    main3()
+    main2()
 
 """
 STDOUT: 22:00 4/23/2014
