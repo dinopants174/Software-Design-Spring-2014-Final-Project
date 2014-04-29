@@ -251,16 +251,15 @@ def resize(filename):
     out.save(small_name)
 
 
-def component_finder(line_rows, filename, original):
+def component_finder(line_rows, original):
     """Using the resized image and the horizontal lines the draw_horizontals function gives us, we find the average of those lines.
     We then offset those lines by 20px and we look for instances of non-white pixels, indicating an irregularity in the line. For 
     visualization purposes, we draw circles at each instance of non-white pixels but we will eventually aim to crop around each
     component and use the classifier to identify it"""
     
-    im = Image.open(filename)
     im2 = Image.open(original)
-    width, height = im.size
-    bw_pix = im.load()
+    width, height = im2.size
+    bw_pix = im2.load()
     avg_line = 0
     for line in line_rows:  #line_rows comes from Sarah's draw_horizontals function
         avg_line += line
@@ -268,15 +267,11 @@ def component_finder(line_rows, filename, original):
         return "There is no horizontal line drawn here because the image may not be straight enough"
     offset = 0.15*height
     line = int(float(avg_line)/len(line_rows))
-    line_final = int((float(avg_line)/len(line_rows))-offset)
-    line_final2 = int(line_final + 2*offset)
+    line_final = int(line - offset)
+    line_final2 = int(line + offset)
     
-    a = read_image(filename)
-    (rows, cols) = a.shape
-    # (rows, cols) = im.shape
-
     non_white = []
-    for i in range(cols):
+    for i in range(width):
         if bw_pix[i,line_final] < 25 or bw_pix[i,line_final2] < 25:
             non_white.append(i)
     
@@ -295,11 +290,14 @@ def component_finder(line_rows, filename, original):
     if len(component) != 0:
         all_components.append(component)
 
+    all_comps_cropped = []
     for i in range(len(all_components)):
         name = 'component_' + str(i)
         box = (int(all_components[i][0] - 0.02*width), int(line_final-0.2*height), int(all_components[i][len(all_components[i])-1]+0.02*width), int(line_final2+0.2*height))
         region = im2.crop(box)
-        region.save(name + ".jpg")
+        all_comps_cropped.append(region)
+
+    return all_comps_cropped
 
 def draw_circuit(component_id_list):
     im = Image.open('resistor.png')
@@ -310,22 +308,23 @@ def draw_circuit(component_id_list):
     j = 0
     for i in range(1, num_of_images+1):
         if i%2 != 0:
-            fin_segment.paste(Image.open('line.png'), box=(x_coord*700, 0))
+            fin_segment.paste(Image.open('line.png'), box=(x_coord*width, 0))
             x_coord += 1
         if i%2 == 0:
-            fin_segment.paste(Image.open(component_id_list[j]+'.png'), box = (x_coord*700, 0))
+            fin_segment.paste(Image.open(component_id_list[j]+'.png'), box = (x_coord*width, 0))
             x_coord += 1
             j += 1
     fin_segment.show()
+    fin_segment.save('drawn_segment.jpg')
     
 
-
-
 if __name__ == '__main__':
-    # line_rows = draw_horizontals('test_2.jpg')
-    # component_finder(line_rows,'hz_test_2.jpg', 'cp_test_2.jpg')
-    ryan_list = ['resistor', 'capacitor']
-    draw_circuit(ryan_list)
+    line_rows = draw_horizontals('test_2.jpg')
+    all_comps = component_finder(line_rows, 'cp_test_2.jpg')
+    print len(all_comps)
+    # component_list = component_classifier(list_of_images)
+    #ryan_list = ['capacitor', 'resistor', 'resistor']
+    #draw_circuit(ryan_list)
 
     
     # stashed changes
