@@ -9,7 +9,7 @@ import crop
 import numpy
 from PIL import Image
 
-from bw_componentrecognition import ComponentClassifier
+# from bw_componentrecognition import ComponentClassifier
 
 '''***********
 file reading methods
@@ -35,7 +35,7 @@ line drawing methods
 def draw_horizontals(filename):
     ''' draws straight lines over the strongest horizontals in an image
         input: image filename
-        output: image with superimposed lines saved to file
+        output: x-coordinates of lines that are drawn on the strongest horizontals in image
     '''
     # get image array and pixel source
     a = read_image(filename)
@@ -259,9 +259,9 @@ def component_finder(line_rows, original):
     visualization purposes, we draw circles at each instance of non-white pixels but we will eventually aim to crop around each
     component and use the classifier to identify it"""
     
-    im2 = Image.open(original)
-    width, height = im2.size
-    bw_pix = im2.load()
+    im = Image.open(original) 
+    width, height = im.size
+    bw_pix = im.load()
     avg_line = 0
     for line in line_rows:  #line_rows comes from Sarah's draw_horizontals function
         avg_line += line
@@ -296,12 +296,12 @@ def component_finder(line_rows, original):
     for i in range(len(all_components)):
         name = 'component_' + str(i)
         box = (int(all_components[i][0] - 0.02*width), int(line_final-0.2*height), int(all_components[i][len(all_components[i])-1]+0.02*width), int(line_final2+0.2*height))
-        region = im2.crop(box)
+        region = im.crop(box)
         all_comps_cropped.append(region)
 
     return all_comps_cropped
 
-def draw_circuit(component_id_list):
+def draw_segment(component_id_list, filename):
     im = Image.open('resistor.png')
     width, height = im.size
     num_of_images = len(component_id_list)*2 +1 
@@ -316,16 +316,18 @@ def draw_circuit(component_id_list):
             fin_segment.paste(Image.open(component_id_list[j]+'.png'), box = (x_coord*width, 0))
             x_coord += 1
             j += 1
-    fin_segment.show()
-    fin_segment.save('drawn_segment.jpg')
-    
+    fin_segment.save(filename)
+
+def draw_check
+
+        
 
 if __name__ == '__main__':
-    line_rows = draw_horizontals('test_2.jpg')
-    all_comps = component_finder(line_rows, 'cp_test_2.jpg')
-    # component_list = component_classifier(list_of_images)
-    ryan_list = ComponentClassifier.predict(all_comps)
-    draw_circuit(ryan_list)
+    #STEP 1: Segmentation produces list of segments
+    line_rows = draw_horizontals('test_1.jpg')  #STEP 2: 
+    all_comps = component_finder(line_rows, 'cp_test_1.jpg')
+    # ryan_list = ComponentClassifier.predict(all_comps)
+    # draw_segment(ryan_list)
 
     
     # stashed changes
