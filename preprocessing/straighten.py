@@ -102,6 +102,10 @@ def draw_horizontals_a(a, a2):
     return a2
     
 def contains_non_binary(a):
+    ''' for testing, not for functionality
+        checks whether an array contains things that aren't 1 or 0
+        returns boolean
+    '''
     (rows, cols) = a.shape
     for r in range(rows):
         for c in range(cols):
@@ -146,56 +150,102 @@ def draw_lines(filename):
     line_rows = []
     for r in range(rows):
         val = numpy.sum(a[r,:])
-        if val < 0.8*cols: # hard-coded, as of now
+        if val < 0.7*cols: # hard-coded, as of now
             line_rows.append(r)
             
     # remove similar values in line_rows
     main_rows = []
+    this_row = []
     for row in line_rows:
-        accountedFor = False
-        for i in range(row+50):
-            if i in main_rows:
-                accountedFor = True
-        if accountedFor == False:
-            main_rows.append(i)
-            
+        if len(this_row) == 0 or (row - this_row[-1]) <= 0.05*cols:
+            this_row.append(row)
+        else:
+            main_rows.append(sum(this_row)/len(this_row))
+            this_row = []
+    if len(this_row) != 0:
+        main_rows.append(sum(this_row)/len(this_row))
+        
     # draw dark rows
     for r in main_rows:
-        for c in range(cols-1):
-            bw_pix[c,r] = 175
+       for c in range(cols-1):
+           bw_pix[c,r] = 175
             
     # loop through columns checking for darkness
     line_cols = []
     for c in range(cols):
         val = numpy.sum(a[:,c])
-        if val < 0.8*rows: # hard-coded, as of now
+        if val < 0.7*rows: # hard-coded, as of now
             line_cols.append(c)
-            
+        
+        
     # remove similar values in line_rows
     main_cols = []
+    this_col = []
     for col in line_cols:
-        accountedFor = False
-        for i in range(col+50):
-            if i in main_cols:
-                accountedFor = True
-        if accountedFor == False:
-            main_cols.append(i)
+        if len(this_col) == 0 or (col - this_col[-1]) <= 0.05*rows:
+            this_col.append(col)
+        else:
+            main_cols.append(sum(this_col)/len(this_col))
+            this_col = []
+    if len(this_col) != 0:
+        main_cols.append(sum(this_col)/len(this_col))
             
     # draw dark columns
     for c in main_cols:
-        for r in range(rows-1):
-            bw_pix[c,r] = 175
-            
+       for r in range(rows-1):
+           bw_pix[c,r] = 175
+    
     lnname = 'ln_' + filename
     im.save(lnname)
-    return [main_rows, main_cols]
+    return [im, rows, cols, main_rows, main_cols]
     
-def intersections(line_rows, line_cols):    
+def intersections(rows, cols):    
     i = []
-    for row in line_rows:
-        for col in line_cols:
+    for row in rows:
+        for col in cols:
             i.append((row, col))
-    return i   
+    return i
+    
+def get_segments(im, rows, cols, main_rows, main_cols):    
+    segments = []
+    
+    for row in main_rows:
+        t = row-int(0.05*rows)
+        b = row+int(0.05*rows)     
+        for i in range(len(main_cols)-1):
+            l = main_cols[i]
+            r = main_cols[i+1]
+            #box = (main_cols[i]+int(0.05*cols), t, main_cols[i+1]-int(0.05*cols), b)
+            box = (l, t, r, b)
+            cropped = im.crop(box)
+            cropped.save('segment_h_' + str(len(segments)) + '.jpg')
+            segments.append(Segment(cropped, (row, l), (row, r)))
+            
+    for col in main_cols:
+        l = col-int(0.05*cols)
+        r = col+int(0.05*cols)
+        for i in range(len(main_rows)-1):
+            t = main_rows[i]
+            b = main_rows[i+1]
+            #box = (l, main_rows[i]+int(0.05*rows), r, main_rows[i+1]-int(0.05*rows))
+            box = (l, t, r, b)
+            cropped = im.crop(box)
+            cropped = cropped.rotate(90)
+            cropped.save('segment_v_' + str(len(segments)) + '.jpg')
+            segments.append(Segment(cropped, (t, col), (b, col)))
+    
+    return segments
+    
+
+class Segment():
+    def __init__(self, image, start, end):
+        self.image = image
+        self.start = start
+        self.end = end
+    
+    def is_horizontal(self):
+        return self.start[0] == self.end[0]
+    
 
 def darkness(line):
     ''' computes average darkness of a numpy array of 1's and 0's
@@ -261,38 +311,48 @@ def component_finder(line_rows, original):
     
     im = Image.open(original) 
     width, height = im.size
-    bw_pix = im.load()
+    bw_pix = im.load() # could be from original one too
+    
+    # locate main dark line
     avg_line = 0
     for line in line_rows:  #line_rows comes from Sarah's draw_horizontals function
         avg_line += line
     if avg_line == 0:
         return "There is no horizontal line drawn here because the image may not be straight enough"
+        
+    # make offset lines
     offset = 0.15*height
     line = int(float(avg_line)/len(line_rows))
     line_final = int(line - offset)
     line_final2 = int(line + offset)
     
+
     non_white = []
     for i in range(width):
         if bw_pix[i,line_final] < 25 or bw_pix[i,line_final2] < 25:
             non_white.append(i)
     
+    # find components using deviations
     component = []
     all_components = []
     component_counter = 0
     for i in range(len(non_white)-1):
-        if non_white[i+1] - non_white[i] > 0.12*width:
+        # have found end of component - add to list of all components and clear component list
+        if non_white[i+1] - non_white[i] > 0.12*width:  #0.5*width  # assumption about component spacing
             component_counter += 1
             component.append(non_white[i])
             all_components.append(component)
             component = [] 
+        # not the end of the component yet - keep going
         else:
             component.append(non_white[i])
 
+    # if last leftover component isn't empty (won't have been added b/c array hasn't had a chance to clear), add it to all components too
     if len(component) != 0:
         all_components.append(component)
 
     all_comps_cropped = []
+    # name components, crop them out, and save them
     for i in range(len(all_components)):
         name = 'component_' + str(i)
         box = (int(all_components[i][0] - 0.02*width), int(line_final-0.2*height), int(all_components[i][len(all_components[i])-1]+0.02*width), int(line_final2+0.2*height))
@@ -322,14 +382,19 @@ def draw_check
 
         
 
-if __name__ == '__main__':
-    #STEP 1: Segmentation produces list of segments
-    line_rows = draw_horizontals('test_1.jpg')  #STEP 2: 
-    all_comps = component_finder(line_rows, 'cp_test_1.jpg')
-    # ryan_list = ComponentClassifier.predict(all_comps)
-    # draw_segment(ryan_list)
 
+if __name__ == '__main__':
+    #line_rows = draw_horizontals('test_1.jpg')
+    #print component_finder(line_rows,'hz_test_1.jpg', 'cp_test_1.jpg')
     
     # stashed changes
-    # [r,c] = draw_lines('IMAG0722.jpg')
-    # print intersections(r,c)
+    [im, rows, cols, main_rows, main_cols] = draw_lines('intersection-test.jpg')
+    # [im, rows, cols, main_rows, main_cols] = draw_lines('grid.jpg')
+    print intersections(main_rows, main_cols)
+    segments = get_segments(im, rows, cols, main_rows, main_cols)
+    
+    for s in segments:
+        print 'Start point: ' + str(s.start)
+        print 'End point: ' + str(s.end)
+        print s.is_horizontal()
+        print '---'

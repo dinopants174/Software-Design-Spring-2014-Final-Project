@@ -39,7 +39,11 @@ def all_crops(im):
         output: cropped image object
     '''
     # crop image
+<<<<<<< HEAD
     [crop_bw_pix, rows, cols] = im_to_size_px(im, 100) # threshold low intentionally - looks wrong, but cuts down on insignificant dark spots for cropping
+=======
+    [crop_bw_pix, rows, cols] = im_to_size_px(im, 50) # threshold low intentionally - looks wrong, but cuts down on insignificant dark spots for cropping
+>>>>>>> 63f75e466351140937432529fedfd9bb0da646a4
     a = pix_to_array(crop_bw_pix, rows, cols)
     [l, r, t, b] = strip_array(a) # bounding dimensions
 
