@@ -202,37 +202,47 @@ def intersections(rows, cols):
     for row in rows:
         for col in cols:
             i.append((row, col))
-    return i   
+    return i
     
-def segment(im, rows, cols, main_rows, main_cols):    
-    horizontals = []
-    verticals = []
+def get_segments(im, rows, cols, main_rows, main_cols):    
+    segments = []
     
     for row in main_rows:
         t = row-int(0.05*rows)
         b = row+int(0.05*rows)     
         for i in range(len(main_cols)-1):
+            l = main_cols[i]
+            r = main_cols[i+1]
             #box = (main_cols[i]+int(0.05*cols), t, main_cols[i+1]-int(0.05*cols), b)
-            box = (main_cols[i], t, main_cols[i+1], b)
-            segment = im.crop(box)
-            segment.save('horizontal_' + str(len(horizontals)) + '.jpg')
-            horizontals.append(segment)
+            box = (l, t, r, b)
+            cropped = im.crop(box)
+            cropped.save('segment_h_' + str(len(segments)) + '.jpg')
+            segments.append(Segment(cropped, (row, l), (row, r)))
             
     for col in main_cols:
         l = col-int(0.05*cols)
         r = col+int(0.05*cols)
-        box = (l, 0, r, rows)
-        segment = im.crop(box)
-        
         for i in range(len(main_rows)-1):
+            t = main_rows[i]
+            b = main_rows[i+1]
             #box = (l, main_rows[i]+int(0.05*rows), r, main_rows[i+1]-int(0.05*rows))
-            box = (l, main_rows[i], r, main_rows[i+1])
-            segment = im.crop(box)
-            segment = segment.rotate(90)
-            segment.save('vertical_' + str(len(verticals)) + '.jpg')
-            verticals.append(segment)
+            box = (l, t, r, b)
+            cropped = im.crop(box)
+            cropped = cropped.rotate(90)
+            cropped.save('segment_v_' + str(len(segments)) + '.jpg')
+            segments.append(Segment(cropped, (t, col), (b, col)))
     
-    return [horizontals, verticals]
+    return segments
+    
+
+class Segment():
+    def __init__(self, image, start, end):
+        self.image = image
+        self.start = start
+        self.end = end
+    
+    def is_horizontal(self):
+        return self.start[0] == self.end[0]
     
 
 def darkness(line):
@@ -358,7 +368,13 @@ if __name__ == '__main__':
     #print component_finder(line_rows,'hz_test_1.jpg', 'cp_test_1.jpg')
     
     # stashed changes
-    #[im, rows, cols, main_rows, main_cols] = draw_lines('intersection-test.jpg')
-    [im, rows, cols, main_rows, main_cols] = draw_lines('grid.jpg')
+    [im, rows, cols, main_rows, main_cols] = draw_lines('intersection-test.jpg')
+    # [im, rows, cols, main_rows, main_cols] = draw_lines('grid.jpg')
     print intersections(main_rows, main_cols)
-    print segment(im, rows, cols, main_rows, main_cols)
+    segments = get_segments(im, rows, cols, main_rows, main_cols)
+    
+    for s in segments:
+        print 'Start point: ' + str(s.start)
+        print 'End point: ' + str(s.end)
+        print s.is_horizontal()
+        print '---'
