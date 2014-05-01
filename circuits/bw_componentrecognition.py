@@ -18,13 +18,18 @@ from skimage.filter import threshold_otsu, gabor_filter
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, GradientBoostingClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
-from sklearn.cross_validation import train_test_split
+
+from sklearn.preprocessing import StandardScaler, Normalizer
+from sklearn.cross_validation import train_test_split, cross_val_score
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
+from sklearn.externals import joblib
 
+from utils import Utils
 
 # --- Linux vs Windows Data Directory Compatibility
 
@@ -117,39 +122,89 @@ class FeatureExtraction:
             FeatureExtraction.denom, FeatureExtraction.freq, FeatureExtraction.bw)
         return np.array(FeatureExtraction.mean_exposure_hist(nbins,frontslash,backslash))
 
-def getTrainFilenames(n):
-    filenames = os.listdir(TRAIN_DATA_DIR)
-    np.random.shuffle(filenames)
-    filenames = filenames[:n]
-    return filenames
+    @staticmethod
+    def moments_hu(img):
+        """
+        returns log transformed Hu Moments
+        args:
+            img: M x N array
+        """
+        raw = cv2.HuMoments(cv2.moments(img))
+        log_trans = -np.sign(raw)*np.log10(np.abs(raw))
+        return log_trans.flatten()
 
-def isResistorFromFilename(filenames):
-    is_resistor = [fn[0]=="r" for fn in filenames]
-    return is_resistor
+class Data:
 
-def loadImage(filename, nbins):
-    image = cv2.imread(filename, cv2.CV_LOAD_IMAGE_GRAYSCALE) 
-    image = Preprocessing.standardize_shape(image)
-    h = FeatureExtraction.mean_exposure_hist_from_gabor(image,nbins)
-    image = image.flatten()
-    return np.hstack((image, h)) # h takes up the last nbins rows of the feature vector
+    @staticmethod
+    def getTrainFilenames(n):
+        filenames = os.listdir(TRAIN_DATA_DIR)
+        np.random.shuffle(filenames)
+        filenames = filenames[:n]
+        return filenames
 
-def loadTrain(n, nbins, verbose=False):
-    filenames = getTrainFilenames(n)
-    is_resistor = isResistorFromFilename(filenames)
-    I = []
-    if verbose:
+    @staticmethod
+    def isResistorFromFilename(filenames):
+        is_resistor = [fn[0]=="r" for fn in filenames]
+        return is_resistor
+    
+    @staticmethod
+    def loadImageFeatures(filename,nbins):
+        image = Data.loadImage(filename)
+        hu_moments = FeatureExtraction.moments_hu(image)
+        gabor_hist = FeatureExtraction.mean_exposure_hist_from_gabor(image,nbins)
+    
+        return Utils.hStackMatrices(hu_moments, gabor_hist)
+
+    @staticmethod    
+    def loadImage(filename):
+        image = cv2.imread(filename, cv2.CV_LOAD_IMAGE_GRAYSCALE) 
+        return Preprocessing.standardize_shape(image)
+
+    @staticmethod
+    def loadTrain(n, nbins):
+        filenames = Data.getTrainFilenames(n)
+
+        X = None
+        
         for i in range(n):
             fn = filenames[i]
-            print os.sys.stdout.write('.')
-            I.append(loadImage(TRAIN_DATA_DIR + fn, nbins))
-    else:
-        for i in range(n):
-            fn = filenames[i]
-            I.append(loadImage(TRAIN_DATA_DIR + fn, nbins))      
-    return I, is_resistor
+            X = Utils.vStackMatrices(X, Data.loadImageFeatures(TRAIN_DATA_DIR + fn, nbins))
+        
+        y = Data.isResistorFromFilename(filenames)
 
-# Component Classification System
+        return np.array(X), np.array(y)
+
+class ComponentClassifier:
+
+    @staticmethod
+    def predict(images, clf=None, nbins=23):
+        """ 
+        args:
+            images: list of PIL images
+            clf: classifier object (default = None).  Will load automatically
+                 if None
+            nbins: number of bins for the exposure histogram.  This is purely
+                   dependent on number of bins the classifier was trained on
+        returns:
+            list of component labels corresponding to each element in images
+        """
+        Xs = []
+
+        for image in images:
+            image = Preprocessing.standardize_shape(image)
+            hu_moments = FeatureExtraction.moments_hu(image)
+            gabor_hist = FeatureExtraction.mean_exposure_hist_from_gabor(image,nbins)
+            Xs.append(Utils.hStackMatrices(hu_moments, gabor_hist))
+
+        classifier = joblib.load('SVC_ResCap.pkl') if clf is None else clf
+
+        preds = []
+
+        for X in Xs:
+            preds.extend(classifier.predict(X))
+
+        return [Utils.map_label_to_str(pred) for pred in preds]
+
 
 def component_clf_sys(nbins, clf):
     """ returns an accuracy score for X (pixels + hist)
@@ -157,18 +212,13 @@ def component_clf_sys(nbins, clf):
     nbins: number of bins for exposure histogram of the gabor filtered images
     clf: an instantiated classifier object
     """
-    X, y = loadTrain(NUM_TRAIN, nbins)
-    X, y = (np.array(X), np.array(y))
-    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.10)
     
-    # Separate into Images and Histograms
-    hist_start = -nbins
-    # I_train, I_test = X_train[:,:hist_start], X_test[:,:hist_start]
-    h_train, h_test = X_train[:,hist_start:], X_test[:,hist_start:]
-
-    clf.fit(h_train, y_train)
+    X, y = Data.loadTrain(NUM_TRAIN, nbins)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.50)
     
-    y_pred = clf.predict(h_test)
+    clf.fit(X_train, y_train)
+    
+    y_pred = clf.predict(X_test)
     
     accuracy = accuracy_score(y_test,y_pred)
     
@@ -187,7 +237,7 @@ def avg_perf_component_clf_sys(nruns, nbins, clf):
         perf.append(accuracy)
     return np.mean(perf)
 
-def compareClassifiers(clfs):
+def compareClassifiers(clfs, nbins):
     """ Caculates average performance of the component classification system for given ML Classifiers """
     nruns = 10
     nbins = 6
@@ -195,18 +245,60 @@ def compareClassifiers(clfs):
         avg_perf = avg_perf_component_clf_sys(nruns, nbins, clf)
         print "\nAverage performance of {} when trained on histogram (nbins = {}): ".format(clf.__str__(), nbins) + str(avg_perf)
 
-def main():
+def main1():
     classifiers = [
         KNeighborsClassifier(),
         LogisticRegression(),
         SVC(kernel='linear'),
         RandomForestClassifier(),
         AdaBoostClassifier()]
+    
+    ensembles = [
+        RandomForestClassifier(n_jobs=-1),
+        GradientBoostingClassifier(n_estimators=100)]
+    
+    compareClassifiers(ensembles)
 
-    compareClassifiers(classifiers)
+def main2():
+    # 0.97 gridsearch optimized
+    X, y = Data.loadTrain(NUM_TRAIN, nbins=23)
+
+    scaler = StandardScaler().fit(X)
+    X = scaler.transform(X)
+    
+    normalizer = Normalizer().fit(X)
+    X = normalizer.transform(X)
+    
+    classifiers = [
+        SVC(C=100, kernel='rbf', gamma=0.1),
+        SVC(C=100, kernel='rbf', gamma=1.0),
+        RandomForestClassifier(n_estimators=20),
+        GradientBoostingClassifier(n_estimators=100)]
+
+    for clf in classifiers:
+        scores = cross_val_score(clf, X, y, cv=5)
+        print str(clf) + "\n"
+        print "raw scores: \n" + str(scores)
+        print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+
+def main3():
+    X, y = Data.loadTrain(NUM_TRAIN, nbins=23)
+    
+    scaler = StandardScaler().fit(X)
+    X = scaler.transform(X)
+    
+    normalizer = Normalizer().fit(X)
+    X = normalizer.transform(X)
+    
+    clf = SVC(C=100, kernel='rbf', gamma=1.0)
+
+    clf.fit(X, y)
+
+    joblib.dump(clf, "SVC_ResCap_ScaledNormalized.pkl",9)
 
 if __name__ == '__main__':
-    main()
+    main2()
 
 """
 STDOUT: 22:00 4/23/2014
@@ -258,5 +350,14 @@ Average performance of AdaBoostClassifier(algorithm=SAMME.R,
           base_estimator__random_state=None, base_estimator__splitter=best,
           learning_rate=1.0, n_estimators=50, random_state=None) when trained on pixels + histogram (nbins = 6): 0.956603773585
 [Finished in 134.0s]
+
+
+# clf = RandomForestClassifier(
+    #     bootstrap=False,
+    #     min_samples_leaf=1,
+    #     min_samples_split=1,
+    #     criterion='entropy',
+    #     max_features=3,
+    #     max_depth=None)
 """
 
