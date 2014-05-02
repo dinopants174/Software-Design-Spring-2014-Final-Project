@@ -7,7 +7,7 @@ Created on Thu Apr  3 16:30:05 2014
 
 import crop
 import numpy
-from PIL import Image
+from PIL import Image, ImageDraw
 
 # from bw_componentrecognition import ComponentClassifier
 
@@ -245,6 +245,15 @@ class Segment():
     
     def is_horizontal(self):
         return self.start[0] == self.end[0]
+
+    def length(self):
+        if self.is_horizontal():
+            return self.end[1]-self.start[1]
+        else:
+            return self.end[0]-self.start[0]
+
+    def finding_components(self, component_id_list):
+        self.component_id_list = component_id_list
     
 
 def darkness(line):
@@ -361,10 +370,10 @@ def component_finder(line_rows, original):
 
     return all_comps_cropped
 
-def draw_segment(component_id_list, filename):
+def draw_segment(component_id_list):
     im = Image.open('resistor.png')
     width, height = im.size
-    num_of_images = len(component_id_list)*2 +1 
+    num_of_images = len(component_id_list)*2+1 
     fin_segment = Image.new('L', (num_of_images*width , height), color=255)
     x_coord = 0
     j = 0
@@ -378,8 +387,21 @@ def draw_segment(component_id_list, filename):
             j += 1
     fin_segment.save(filename)
 
-def draw_check
-
+def draw_segment2(segment):
+    fin_segment = Image.new('L', (segment.length(), 700), color=255)
+    len_of_images = segment.length()/700
+    x_coord = 0
+    width = 700
+    for i in range(len_of_images):
+        fin_segment.paste(Image.open('line.png'), box=(x_coord*width, 0))
+        x_coord += 1
+    fin_segment.paste(Image.open('line.png'), box=(segment.length()-700, 0))
+    all_comps = segment.component_id_list
+    x_coord = 1
+    for i in range(len(all_comps)):
+        fin_segment.paste(Image.open(all_comps[i]+'.png'), box=((x_coord * segment.length()/(len(all_comps)+1))-350, 0))
+        x_coord += 1
+    fin_segment.show()
         
 
 
@@ -390,11 +412,16 @@ if __name__ == '__main__':
     # stashed changes
     [im, rows, cols, main_rows, main_cols] = draw_lines('intersection-test.jpg')
     # [im, rows, cols, main_rows, main_cols] = draw_lines('grid.jpg')
-    print intersections(main_rows, main_cols)
+    # print intersections(main_rows, main_cols)
     segments = get_segments(im, rows, cols, main_rows, main_cols)
     
-    for s in segments:
-        print 'Start point: ' + str(s.start)
-        print 'End point: ' + str(s.end)
-        print s.is_horizontal()
-        print '---'
+    # for s in segments:
+    #     print 'Start point: ' + str(s.start)
+    #     print 'End point: ' + str(s.end)
+    #     print s.is_horizontal()
+    #     print '---'
+
+    segments[0].finding_components(['capacitor', 'resistor', 'capacitor'])
+    draw_segment2(segments[0])
+
+
