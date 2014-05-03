@@ -39,12 +39,14 @@ def all_crops(im):
         output: cropped image object
     '''
     # crop image
-    [crop_bw_pix, rows, cols] = im_to_size_px(im, 120) # threshold low intentionally - looks wrong, but cuts down on insignificant dark spots for cropping
+
+    [crop_bw_pix, rows, cols] = im_to_size_px(im, 50) # threshold low intentionally - looks wrong, but cuts down on insignificant dark spots for cropping
+
     a = pix_to_array(crop_bw_pix, rows, cols)
     [l, r, t, b] = strip_array(a) # bounding dimensions
 
     # make black/white image to use as pixel source for cropped image
-    [save_bw_pix, rows, cols] = im_to_size_px(im, 135) # more visually appropriate threshold than for crop_bw_pix
+    [save_bw_pix, rows, cols] = im_to_size_px(im, 100) # more visually appropriate threshold than for crop_bw_pix
     
     # make new image, cropped size
     res = Image.new('L',(r-l, b-t)) # r-l = new width, b-t = new height
