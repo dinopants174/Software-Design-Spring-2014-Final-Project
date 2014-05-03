@@ -10,8 +10,6 @@ import sys
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-import pandas as pd
-import Image
 from scipy import misc
 from skimage import io, transform, exposure
 from skimage.filter import threshold_otsu, gabor_filter
@@ -125,13 +123,25 @@ class FeatureExtraction:
     @staticmethod
     def moments_hu(img):
         """
-        returns log transformed Hu Moments
+        returns the last log transformed Hu Moments
         args:
             img: M x N array
         """
         raw = cv2.HuMoments(cv2.moments(img))
         log_trans = -np.sign(raw)*np.log10(np.abs(raw))
-        return log_trans.flatten()
+        return log_trans.flatten()[-1]
+
+    @staticmethod
+    def rawpix_nbins(image, nbins):
+        """
+        extracts raw pixel features and a histogram of nbins
+        args:
+            image: a m x n standardized shape ndarray representing an image
+            nbins: nbins for histogram
+        """
+        gabor_hist = FeatureExtraction.mean_exposure_hist_from_gabor(image,nbins)
+        image = image.flatten()
+        return Utils.hStackMatrices(image, gabor_hist)
 
 class Data:
 
@@ -150,14 +160,11 @@ class Data:
     @staticmethod
     def loadImageFeatures(filename,nbins):
         image = Data.loadImage(filename)
-        hu_moments = FeatureExtraction.moments_hu(image)
-        gabor_hist = FeatureExtraction.mean_exposure_hist_from_gabor(image,nbins)
-    
-        return Utils.hStackMatrices(hu_moments, gabor_hist)
+        return FeatureExtraction.rawpix_nbins(image, nbins)
 
     @staticmethod    
     def loadImage(filename):
-        image = cv2.imread(filename, cv2.CV_LOAD_IMAGE_GRAYSCALE) 
+        image = cv2.imread(filename, cv2.CV_LOAD_IMAGE_GRAYSCALE)
         return Preprocessing.standardize_shape(image)
 
     @staticmethod
@@ -177,31 +184,23 @@ class Data:
 class ComponentClassifier:
 
     @staticmethod
-    def predict(images, clf=None, nbins=23):
+    def predict(images, clf, nbins):
         """ 
         args:
             images: list of PIL images
-            clf: classifier object (default = None).  Will load automatically
-                 if None
+            clf: classifier object
             nbins: number of bins for the exposure histogram.  This is purely
                    dependent on number of bins the classifier was trained on
         returns:
             list of component labels corresponding to each element in images
         """
-        Xs = []
+        X = None
 
         for image in images:
             image = Preprocessing.standardize_shape(image)
-            hu_moments = FeatureExtraction.moments_hu(image)
-            gabor_hist = FeatureExtraction.mean_exposure_hist_from_gabor(image,nbins)
-            Xs.append(Utils.hStackMatrices(hu_moments, gabor_hist))
+            X = Utils.vStackMatrices(X, FeatureExtraction.rawpix_nbins(image, nbins))
 
-        classifier = joblib.load('SVC_ResCap.pkl') if clf is None else clf
-
-        preds = []
-
-        for X in Xs:
-            preds.extend(classifier.predict(X))
+        y_pred = clf.predict(X)
 
         return [Utils.map_label_to_str(pred) for pred in preds]
 
@@ -261,19 +260,22 @@ def main1():
 
 def main2():
     # 0.97 gridsearch optimized
-    X, y = Data.loadTrain(NUM_TRAIN, nbins=23)
+    X, y = Data.loadTrain(NUM_TRAIN, nbins=6)
 
-    scaler = StandardScaler().fit(X)
-    X = scaler.transform(X)
+    # scaler = StandardScaler().fit(X)
+    # X = scaler.transform(X)
     
-    normalizer = Normalizer().fit(X)
-    X = normalizer.transform(X)
+    # normalizer = Normalizer().fit(X)
+    # X = normalizer.transform(X)
     
     classifiers = [
-        SVC(C=100, kernel='rbf', gamma=0.1),
-        SVC(C=100, kernel='rbf', gamma=1.0),
-        RandomForestClassifier(n_estimators=20),
-        GradientBoostingClassifier(n_estimators=100)]
+        # SVC(C=100, kernel='rbf'),
+        # SVC(C=100, kernel='linear'),
+        RandomForestClassifier(),
+        GradientBoostingClassifier()]
+        # LogisticRegression(),
+        # RandomForestClassifier(n_estimators=20),
+        # GradientBoostingClassifier(n_estimators=100)]
 
     for clf in classifiers:
         scores = cross_val_score(clf, X, y, cv=5)
@@ -283,22 +285,22 @@ def main2():
 
 
 def main3():
-    X, y = Data.loadTrain(NUM_TRAIN, nbins=23)
+    X, y = Data.loadTrain(NUM_TRAIN, nbins=10)
     
-    scaler = StandardScaler().fit(X)
-    X = scaler.transform(X)
+    # scaler = StandardScaler().fit(X)
+    # X = scaler.transform(X)
     
-    normalizer = Normalizer().fit(X)
-    X = normalizer.transform(X)
+    # normalizer = Normalizer().fit(X)
+    # X = normalizer.transform(X)
     
-    clf = SVC(C=100, kernel='rbf', gamma=1.0)
-
+    # clf = SVC(C=100, kernel='rbf', gamma=1.0)
+    clf = GradientBoostingClassifier(n_estimators=100)
     clf.fit(X, y)
 
-    joblib.dump(clf, "SVC_ResCap_ScaledNormalized.pkl",9)
+    joblib.dump(clf, "RF_nbins10_rawpix.pkl",9)
 
 if __name__ == '__main__':
-    main2()
+    main3()
 
 """
 STDOUT: 22:00 4/23/2014
