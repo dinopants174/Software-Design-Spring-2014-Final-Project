@@ -1,4 +1,5 @@
 import os
+
 from sklearn.externals import joblib
 
 # Import scripts used in our system including crop, straighten, etc
@@ -10,7 +11,7 @@ class System:
 
 	data_dir = os.path.join(os.path.abspath('../'),'data/')
 
-	ml_classifier = joblib.load(data_dir+'randomforest_rawpix_nbins6.pkl')
+	ml_classifier = joblib.load(self.data_dir+'randomforest_rawpix_nbins6.pkl')
 	nbins = 6
 
 	@staticmethod
