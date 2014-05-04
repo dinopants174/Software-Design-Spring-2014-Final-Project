@@ -27,7 +27,7 @@ def read_image(filename):
 def read_image_im(im):
     [bw_pix, rows, cols] = crop.im_to_size_px(im, 100)
     return crop.pix_to_array(bw_pix, rows, cols)
-   
+    
    
 '''***********
 line drawing methods
@@ -130,9 +130,9 @@ def draw_verticals(filename):
             line_cols.append(c)
             
     # draw dark columns
-    for c in line_cols:
-        for r in range(rows-1):
-            bw_pix[c,r] = 175
+    #for c in line_cols:
+    #    for r in range(rows-1):
+    #        bw_pix[c,r] = 175
             
     # save
     vtname = 'vt_' + filename
@@ -165,9 +165,9 @@ def draw_lines(filename):
         main_rows.append(sum(this_row)/len(this_row))
         
     # draw dark rows
-    for r in main_rows:
-       for c in range(cols-1):
-           bw_pix[c,r] = 175
+    #for r in main_rows:
+    #   for c in range(cols-1):
+    #       bw_pix[c,r] = 175
             
     # loop through columns checking for darkness
     line_cols = []
@@ -190,9 +190,9 @@ def draw_lines(filename):
         main_cols.append(sum(this_col)/len(this_col))
             
     # draw dark columns
-    for c in main_cols:
-       for r in range(rows-1):
-           bw_pix[c,r] = 175
+    #for c in main_cols:
+    #   for r in range(rows-1):
+    #       bw_pix[c,r] = 175
     
     lnname = 'ln_' + filename
     im.save(lnname)
