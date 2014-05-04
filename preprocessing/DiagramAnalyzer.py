@@ -78,6 +78,9 @@ def remove_similar(items, max_length):
     ''' reduces similar groups of items in a list to averages of the members in the group
         inputs: list of items, maximum possible list length (width or height of image)
         output: reduced list
+        example: [60, 61, 62, 63, 64, ..., 99, 100, 400, 401, 402, 403, ..., 439, 440]
+            gets separated into [[60, 61, 62, 63, 64..., 99, 100], [400, 401, 402, 403, ..., 439, 440]]
+            such that [80, 420] is returned (80 and 420 are averages of [60...100] and [400...440] sublists)
     '''
     main_items = []
     this_item = []
