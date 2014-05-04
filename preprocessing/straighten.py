@@ -7,7 +7,7 @@ Created on Thu Apr  3 16:30:05 2014
 
 import crop
 import numpy
-from PIL import Image
+from PIL import Image, ImageDraw
 
 # from bw_componentrecognition import ComponentClassifier
 
@@ -218,7 +218,7 @@ def get_segments(im, rows, cols, main_rows, main_cols):
             box = (int(l+0.025*rows), t, int(r-0.025*rows), b)
             cropped = im.crop(box)
             cropped.save('segment_h_' + str(len(segments)) + '.jpg')
-            segments.append(Segment(cropped, (row, l), (row, r)))
+            segments.append(Segment(cropped, (l,row), (r, row)))
             
     for col in main_cols:
         l = col-int(0.05*cols)
@@ -231,7 +231,7 @@ def get_segments(im, rows, cols, main_rows, main_cols):
             cropped = im.crop(box)
             cropped = cropped.rotate(90)
             cropped.save('segment_v_' + str(len(segments)) + '.jpg')
-            segments.append(Segment(cropped, (t, col), (b, col)))
+            segments.append(Segment(cropped, (col, t), (col, b)))
     
     return segments
     
@@ -243,13 +243,13 @@ class Segment():
         self.end = end
     
     def is_horizontal(self):
-        return self.start[0] == self.end[0]
+        return self.start[1] == self.end[1]
 
     def length(self):
         if self.is_horizontal():
-            return self.end[1]-self.start[1]
-        else:
             return self.end[0]-self.start[0]
+        else:
+            return self.end[1]-self.start[1]
 
     def finding_components(self, component_id_list):
         self.component_id_list = component_id_list
@@ -329,24 +329,25 @@ def component_finder(line_rows, segment):
         return "There is no horizontal line drawn here because the image may not be straight enough"
         
     # make offset lines
-    offset = 0.4*height
+    offset = 0.2*height
     line = int(float(avg_line)/len(line_rows))
     line_final = int(line - offset)
     line_final2 = int(line + offset)
-    
-
+    print line, offset, line_final, line_final2
+    print height
     non_white = []
+
     for i in range(width):
         if bw_pix[i,line_final] < 25 or bw_pix[i,line_final2] < 25:
             non_white.append(i)
-    
+
     # find components using deviations
     component = []
     all_components = []
     component_counter = 0
     for i in range(len(non_white)-1):
         # have found end of component - add to list of all components and clear component list
-        if non_white[i+1] - non_white[i] > 0.2*width:  #0.5*width  # assumption about component spacing
+        if non_white[i+1] - non_white[i] > 0.1*width:  #0.5*width  # assumption about component spacing
             component_counter += 1
             component.append(non_white[i])
             all_components.append(component)
@@ -354,6 +355,7 @@ def component_finder(line_rows, segment):
         # not the end of the component yet - keep going
         else:
             component.append(non_white[i])
+    print component_counter
 
     # if last leftover component isn't empty (won't have been added b/c array hasn't had a chance to clear), add it to all components too
     if len(component) != 0:
@@ -363,7 +365,7 @@ def component_finder(line_rows, segment):
     # name components, crop them out, and save them
     for i in range(len(all_components)):
         name = 'component_' + str(i)
-        box = (int(all_components[i][0] - 0.02*width), int(line_final-0.15*height), int(all_components[i][len(all_components[i])-1]+0.02*width), int(line_final2+0.15*height))
+        box = (int(all_components[i][0] - 0.02*width), 0, int(all_components[i][len(all_components[i])-1]+0.02*width), height)
         region = im.crop(box)
         region.show()
         all_comps_cropped.append(region)
@@ -382,29 +384,55 @@ def draw_segment(component_id_list):
             fin_segment.paste(Image.open('line.png'), box=(x_coord*width, 0))
             x_coord += 1
         if i%2 == 0:
-            fin_segment.paste(Image.open(component_id_list[j]+'.png'), box = (x_coord*width, 0))
+            fin_segment.paste(Image.open(component_id_istl[j]+'.png'), box = (x_coord*width, 0))
             x_coord += 1
             j += 1
     fin_segment.save(filename)
 
 def draw_segment2(segment):
-    fin_segment = Image.new('L', (segment.length(), 700), color=255)
+    fin_segment = Image.new('RGBA', (segment.length(), 700))
     len_of_images = segment.length()/700
     x_coord = 0
     width = 700
+    layer = Image.open('line.png')
+    layer = layer.convert('RGBA')
     for i in range(len_of_images):
-        fin_segment.paste(Image.open('line.png'), box=(x_coord*width, 0))
+        fin_segment.paste(layer, box=(x_coord*width, 0), mask=layer)
         x_coord += 1
-    fin_segment.paste(Image.open('line.png'), box=(segment.length()-700, 0))
+    fin_segment.paste(layer, box=(segment.length()-700, 0), mask=layer)
+
     all_comps = segment.component_id_list
     x_coord = 1
     for i in range(len(all_comps)):
         fin_segment.paste(Image.open(all_comps[i]+'.png'), box=((x_coord * segment.length()/(len(all_comps)+1))-350, 0))
         x_coord += 1
 
+    fin_segment.save('test.GIF', transparency=0)
     segment.image = fin_segment
         
+def final_draw(segments):
+    fin_width = []
+    fin_height = []
 
+    for segment in segments:
+        if segment.is_horizontal():
+            fin_width.append(segment.length())
+        else:
+            fin_height.append(segment.length())
+
+    fin_width = max(fin_width)+len(segments)*350
+    fin_height = max(fin_height)+len(segments*350)
+    fin_image = Image.new('L', (fin_width, fin_height), color=255)
+
+    for segment in segments:
+        if segment.is_horizontal():
+            layer = segment.image
+            fin_image.paste(layer, box=(segment.start[0]+350, segment.start[1]), mask=layer)
+        else:
+            layer = segment.image.rotate(-90)
+            fin_image.paste(layer, box=(segment.start[0], segment.start[1]+350), mask=layer)
+
+    fin_image.show()
 
 if __name__ == '__main__':
     #line_rows = draw_horizontals('test_1.jpg')
@@ -415,16 +443,24 @@ if __name__ == '__main__':
     # [im, rows, cols, main_rows, main_cols] = draw_lines('grid.jpg')
     # print intersections(main_rows, main_cols)
     segments = get_segments(im, rows, cols, main_rows, main_cols)
-    segment = segments[0]
+
+    segment = segments[1]
     line_rows = draw_horizontals_im(segment)
     all_comps = component_finder(line_rows, segment)
+    # fin_segments = []
     # for s in segments:
     #     print 'Start point: ' + str(s.start)
     #     print 'End point: ' + str(s.end)
+    #     print s.length()
     #     print s.is_horizontal()
     #     print '---'
+    #     line_rows = draw_horizontals_im(s)
+    #     all_comps = component_finder(line_rows, s)
+    #     s.finding_components(['resistor', 'capacitor'])
+    #     draw_segment2(s)
+    #     fin_segments.append(s)
 
-    # segments[0].finding_components(['capacitor', 'resistor', 'capacitor'])
-    # draw_segment2(segments[0])
+    # final_draw(fin_segments)
+
 
 
