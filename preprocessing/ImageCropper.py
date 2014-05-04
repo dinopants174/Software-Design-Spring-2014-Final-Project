@@ -137,7 +137,8 @@ def all_white(a):
 
 ''' ------ EXAMPLE USE CASE ------ '''
 if __name__ == '__main__':
+    directory = 'TestImages/'
     filename = 'Doyung_Zoher_Test.jpg'
-    im = open_file(filename)
+    im = open_file(directory+filename)
     cropped = smart_crop(im)
-    cropped.save('cp_'+filename)
+    cropped.save(directory+'cp_'+filename)
