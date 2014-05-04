@@ -202,7 +202,7 @@ class ComponentClassifier:
 
         y_pred = clf.predict(X)
 
-        return [Utils.map_label_to_str(pred) for pred in preds]
+        return [Utils.map_label_to_str(label) for label in y_pred]
 
 
 def component_clf_sys(nbins, clf):
