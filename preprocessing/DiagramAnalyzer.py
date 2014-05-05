@@ -7,6 +7,7 @@ Created on Sat May  3 19:53:26 2014
 
 import ImageCropper
 import numpy
+from PIL import Image
 
 ################################################################################################
 
@@ -33,8 +34,8 @@ def find_horizontals(im, t=0.8):
         output: list of dark rows
     '''
     # get image array
-    a = ImageCropper.pix_to_array(im.load())
-    (rows, cols) = a.shape
+    (cols, rows) = im.size
+    a = ImageCropper.pix_to_array(im.load(), rows, cols)
     
     # loop through rows checking for darkness
     line_rows = []
@@ -43,11 +44,11 @@ def find_horizontals(im, t=0.8):
         if val < t*cols: # hard-coded, as of now
             line_rows.append(r)
 
-    # return list of single-pixel dark horizontals (hopefully with length 1, for just 1 segment)
-    main_rows = remove_similar(line_rows, cols)
-    return main_rows  
+    # return list of lists - [center, distribution] for each located horizontal
+    row_analysis = remove_similar(line_rows, cols)
+    return row_analysis  
     
-def find_lines(im, t=0.7):
+def find_lines(im, t=0.8):
     ''' identifies strongest horizontals and verticals in an image
         input: image object, (optional threshold between 0 and 1)
         output: list of lists: [dark rows, dark cols]
@@ -55,32 +56,46 @@ def find_lines(im, t=0.7):
     (cols, rows) = im.size
     a = ImageCropper.pix_to_array(im.load(), rows, cols)
     
+    ## ROWS
     # loop through rows checking for darkness
     line_rows = []
     for r in range(rows):
         val = numpy.sum(a[r,:])
         if val < t*cols: # less than (t*100)% of the row is light
             line_rows.append(r)
-    main_rows = remove_similar(line_rows, cols) # pick out 1px-wide line for each dark horizontal
             
+    # get just centers from row_analysis - distributions useful for find_horizontals, but not here.
+    row_analysis = remove_similar(line_rows, cols) # pick out centers and distributions for each dark horizontal
+    main_rows = []
+    for item in row_analysis:
+        main_rows.append(item[0]) 
+        
+    ## COLS
     # loop through columns checking for darkness
     line_cols = []
     for c in range(cols):
         val = numpy.sum(a[:,c])
         if val < t*rows: # less than (t*100)% of the col is light
             line_cols.append(c)
-    main_cols = remove_similar(line_cols, rows) # again, 1px-wide line for each grouping
+            
+    # get just centers from col_analysis - distributions useful for find_horizontals, but not here.
+    col_analysis = remove_similar(line_cols, rows)
+    main_cols = []
+    for item in col_analysis:
+        main_cols.append(item[0])
 
-    # return list of lists: single-pixel dark horizontals and single-pixel dark verticals
+    ## RETURN list of lists: single-pixel dark horizontals and single-pixel dark verticals
     return [main_rows, main_cols]
     
 def remove_similar(items, max_length):
     ''' reduces similar groups of items in a list to averages of the members in the group
         inputs: list of items, maximum possible list length (width or height of image)
-        output: reduced list
+        output: reduced list of lists -> [center, distribution] where distribution is 1/2 of range
         example: [60, 61, 62, 63, 64, ..., 99, 100, 400, 401, 402, 403, ..., 439, 440]
             gets separated into [[60, 61, 62, 63, 64..., 99, 100], [400, 401, 402, 403, ..., 439, 440]]
-            such that [80, 420] is returned (80 and 420 are averages of [60...100] and [400...440] sublists)
+            such that [[80, 20], [420,20]] is returned 
+                -> 80 and 420 are averages of [60...100] and [400...440] sublist
+                -> (100-60)/2 = 20 and (440-400)/2 = 20
     '''
     main_items = []
     this_item = []
@@ -89,11 +104,15 @@ def remove_similar(items, max_length):
         if len(this_item) == 0 or (i - this_item[-1]) <= 0.05*max_length: # adding to new group
             this_item.append(i)
         else: # group is done; add it to list of group averages and clear it
-            main_items.append(sum(this_item)/len(this_item))
+            avg = sum(this_item)/len(this_item)
+            distr = this_item[-1]-this_item[0]/2
+            main_items.append([avg, distr])
             this_item = []
 
     if len(this_item) != 0: # catch last group
-        main_items.append(sum(this_item)/len(this_item))
+        avg = sum(this_item)/len(this_item)
+        distr = this_item[-1]-this_item[0]/2
+        main_items.append([avg, distr])
         
     return main_items
     
@@ -117,7 +136,7 @@ def get_segments(im):
     for row in main_rows:
         # top and bottom boundaries consistent across row; dependent on image size
         t = row-int(0.05*rows)
-        b = row+int(0.05*rows)    
+        b = row+int(0.05*rows)  
         
         # left and right boundaries defined by one column intersection and the next
         for i in range(len(main_cols)-1):
@@ -125,6 +144,7 @@ def get_segments(im):
             r = main_cols[i+1]
             box = (int(l+0.025*rows), t, int(r-0.025*rows), b) # 0.025 crops off ends - not clean b/c of intersecting lines
             cropped = im.crop(box)
+            print cropped
             segments.append(Segment(cropped, (row, l), (row, r))) # Segment object stores endpoints
     
     # move down each column cropping between dark row intersections
@@ -223,3 +243,59 @@ def component_finder(segment):
         all_comps_cropped.append(region)
 
     return all_comps_cropped
+    
+    
+''' ------ DRAWING ------ '''
+def draw_segment(segment):
+    width = 700
+    
+    # 
+    fin_segment = Image.new('RGBA', (segment.length(), width))
+    line = Image.open('line.png').convert('RGBA')
+    
+    tiles = segment.length()/width
+    current_tile = 0
+    
+    for i in range(tiles):
+        fin_segment.paste(line, box=(current_tile*width, 0), mask=line)
+        current_tile += 1
+    fin_segment.paste(line, box=(segment.length()-width, 0), mask=line)
+
+    all_comps = segment.component_id_list
+    x_coord = 1
+    for i in range(len(all_comps)):
+        fin_segment.paste(Image.open(all_comps[i]+'.png'), box=((x_coord * segment.length()/(len(all_comps)+1))-350, 0))
+        x_coord += 1
+
+    fin_segment.save('test.GIF', transparency=0)
+    segment.image = fin_segment
+    
+        
+def final_draw(segments):
+    fin_width = []
+    fin_height = []
+
+    for segment in segments:
+        if segment.is_horizontal():
+            fin_width.append(segment.length())
+        else:
+            fin_height.append(segment.length())
+
+    fin_width = max(fin_width)+len(segments)*350
+    fin_height = max(fin_height)+len(segments*350)
+    fin_image = Image.new('L', (fin_width, fin_height), color=255)
+
+    for segment in segments:
+        if segment.is_horizontal():
+            layer = segment.image
+            fin_image.paste(layer, box=(segment.start[0]+350, segment.start[1]), mask=layer)
+        else:
+            layer = segment.image.rotate(-90)
+            fin_image.paste(layer, box=(segment.start[0], segment.start[1]+350), mask=layer)
+
+    fin_image.show()
+
+if __name__ == '__main__':
+
+    segments = get_segments(Image.open('TestImages/intersection-test.jpg'))
+    print segments

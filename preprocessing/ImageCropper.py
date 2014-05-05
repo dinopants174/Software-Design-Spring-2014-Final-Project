@@ -60,7 +60,7 @@ def smart_crop(im):
     box = array_bounds(a) # (left, top, right, bottom) tuple
    
     # make cropped image
-    toSave = threshold(im, 100) # more normal-looking threshold
+    toSave = threshold(im, 50) # more normal-looking threshold
     return toSave.crop(box) # built-in image method
     
 
