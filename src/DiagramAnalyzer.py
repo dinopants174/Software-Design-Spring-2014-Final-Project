@@ -7,6 +7,7 @@ Created on Sat May  3 19:53:26 2014
 
 import ImageCropper
 import numpy
+import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw
 
 ################################################################################################
@@ -247,7 +248,10 @@ def component_finder(segment):
         name = 'component_' + str(i)
         box = (int(all_components[i][0] - 0.02*width), 0, int(all_components[i][len(all_components[i])-1]+0.02*width), height)
         region = im.crop(box)
-        region.show()
+        region = ImageCropper.PIL2array(region)
+        plt.imshow(region, cmap='gray')
+        plt.show()
+
         all_comps_cropped.append(region)
 
     return all_comps_cropped
