@@ -2,6 +2,7 @@
 SmarterBoard Component Classifier 
 author: rlouie 
 """
+import cv2
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -24,6 +25,16 @@ class Preprocessing:
         return binary
 
     @staticmethod
+    def binary_from_laplacian(img):
+        """ Function that converts an image into binary using
+        a laplacian transform and feeding it into binary_from_thresh 
+        args:
+            img: m x n ndarray
+        """
+        laplacian = cv2.Laplacian(img,cv2.CV_64F)
+        return Preprocessing.binary_from_thresh(laplacian)
+
+    @staticmethod
     def scale_image(img,scaler,org_dim):
         """ resizes an image based on a certain scaler 
         args:
@@ -34,8 +45,9 @@ class Preprocessing:
         width, height = org_dim
         output_width = int(scaler*width)
         output_height = int(scaler*height)
-        return transform.resize(img, (output_height, output_width))
-    
+        # return transform.resize(img, (output_height, output_width))
+        return cv2.resize(img, (output_width, output_height), interpolation=cv2.INTER_CUBIC)
+
     @staticmethod
     def standardize_shape(img):
         """ standardizes the shape of the images to a tested shape for gabor 
@@ -73,6 +85,7 @@ class Preprocessing:
         theta = np.pi*(-1.0/denom)
         return Preprocessing.angle_pass_filter(img,freq,theta,bandwidth)
 
+
 class FeatureExtraction:
     
     denom = 4.0
@@ -102,6 +115,17 @@ class FeatureExtraction:
         return np.array(FeatureExtraction.mean_exposure_hist(nbins,frontslash,backslash))
 
     @staticmethod
+    def moments_hu(img):
+        """
+        returns the last log transformed Hu Moments
+        args:
+            img: M x N array
+        """
+        raw = cv2.HuMoments(cv2.moments(img))
+        log_trans = -np.sign(raw)*np.log10(np.abs(raw))
+        return log_trans.flatten()
+
+    @staticmethod
     def rawpix_nbins(image, nbins):
         """
         extracts raw pixel features and a histogram of nbins
@@ -113,10 +137,16 @@ class FeatureExtraction:
         image = image.flatten()
         return Utils.hStackMatrices(image, gabor_hist)
 
+    @staticmethod
+    def moments_nbins(image, nbins):
+        moments = FeatureExtraction.moments_hu(image)
+        gabor_hist = FeatureExtraction.mean_exposure_hist_from_gabor(image,nbins)
+        return np.hstack((moments, gabor_hist))
+
 class ComponentClassifier:
 
     @staticmethod
-    def predict(images, clf, nbins):
+    def predict(images, clf, nbins, scaler):
         """ 
         args:
             images: list of PIL images
@@ -129,8 +159,14 @@ class ComponentClassifier:
         X = None
 
         for image in images:
-            image = Preprocessing.standardize_shape(np.array(image))
-            X = Utils.vStackMatrices(X, FeatureExtraction.rawpix_nbins(image, nbins))
+            # image comes as a boolean image
+            boolean = np.array(image) 
+            # We trained it as a nd array w/ values 0 black, 255 white
+            integer = np.array(boolean, dtype='int16')
+            im = Preprocessing.standardize_shape(integer)
+            X = Utils.vStackMatrices(X, FeatureExtraction.moments_nbins(im, nbins))
+
+        X = scaler.transform(X)
 
         y_pred = clf.predict(X)
 
