@@ -1,10 +1,10 @@
 import os
 
-# from sklearn.externals import joblib
+from sklearn.externals import joblib
 
 import ImageCropper
 import DiagramAnalyzer
-# from ComponentClassifier import ComponentClassifier
+from ComponentClassifier import ComponentClassifier
 
 class System:
 
@@ -66,12 +66,11 @@ class System:
 			component_images = DiagramAnalyzer.component_finder(segment)
 
 			# Resistor vs Capacitor Component Classifier
-			# component_id_list = ComponentClassifier.predict(
-			# 						component_images, 
-			# 						self.clf, 
-			# 						self.nbins)
-			# segment.finding_components(componet_id_list)
-			segment.finding_components(['resistor', 'capacitor'])
+			component_id_list = ComponentClassifier.predict(
+									component_images, 
+									self.clf, 
+									self.nbins)
+			segment.finding_components(component_id_list)
 
 			# Draw a beautified digital equivalent of the segment
 			DiagramAnalyzer.draw_segment(segment)

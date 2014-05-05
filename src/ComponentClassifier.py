@@ -6,7 +6,7 @@ author: rlouie
 import numpy as np
 import matplotlib.pyplot as plt
 
-from skimage import exposure
+from skimage import exposure, transform
 from skimage.filter import threshold_otsu, gabor_filter
 
 from utils import Utils
@@ -129,7 +129,7 @@ class ComponentClassifier:
         X = None
 
         for image in images:
-            image = Preprocessing.standardize_shape(nd.array(image))
+            image = Preprocessing.standardize_shape(np.array(image))
             X = Utils.vStackMatrices(X, FeatureExtraction.rawpix_nbins(image, nbins))
 
         y_pred = clf.predict(X)

@@ -257,7 +257,7 @@ def draw_segment(segment):
     len_of_images = segment.length()/700
     x_coord = 0
     width = 700
-    layer = Image.open('SourceImages/line.png')
+    layer = Image.open('../data/SourceImages/line.png')
     layer = layer.convert('RGBA')
     for i in range(len_of_images):
         fin_segment.paste(layer, box=(x_coord*width, 0), mask=layer)
@@ -267,7 +267,7 @@ def draw_segment(segment):
     all_comps = segment.component_id_list
     x_coord = 1
     for i in range(len(all_comps)):
-        fin_segment.paste(Image.open('SourceImages/'+all_comps[i]+'.png'), box=((x_coord * segment.length()/(len(all_comps)+1))-350, 0))
+        fin_segment.paste(Image.open('../data/SourceImages/'+all_comps[i]+'.png'), box=((x_coord * segment.length()/(len(all_comps)+1))-350, 0))
         x_coord += 1
 
     segment.image = fin_segment
@@ -293,11 +293,11 @@ def final_draw(segments):
             layer = segment.image.rotate(-90)
             fin_image.paste(layer, box=(segment.start[1], segment.start[0]+350), mask=layer)
     fin_image.show()
-    fin_image.save('draw-result.jpg')
+    fin_image.save('../data/TestImages/draw-result.jpg')
 
 
 if __name__ == '__main__':
-    im = Image.open('intersection-test.jpg')
+    im = Image.open('../data/TestImages/intersection-test.jpg')
     bw = ImageCropper.smart_crop(im)
     segments = get_segments(bw)
     segments = [segments[0], segments[1], segments[2], segments[3]]
