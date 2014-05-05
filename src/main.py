@@ -1,17 +1,16 @@
 import os
 
-from sklearn.externals import joblib
+# from sklearn.externals import joblib
 
 import ImageCropper
 import DiagramAnalyzer
-from ComponentClassifier import ComponentClassifier
+# from ComponentClassifier import ComponentClassifier
 
 class System:
 
-	data_dir = os.path.join(os.path.abspath('../'),'data/')
-	images_dir = os.path.join(self.data_dir, 'TestImages/')
-
 	def __init__(self, clf_fn='randomforest_rawpix_nbins6.pkl', nbins=6):
+		self.data_dir = os.path.join(os.path.abspath('../'),'data/')
+		self.images_dir = os.path.join(self.data_dir, 'TestImages/')
 		self.clf = joblib.load(os.path.join(self.data_dir, clf_fn))
 		self.nbins = nbins
 
@@ -67,11 +66,12 @@ class System:
 			component_images = DiagramAnalyzer.component_finder(segment)
 
 			# Resistor vs Capacitor Component Classifier
-			component_id_list = ComponentClassifier.predict(
-									component_images, 
-									self.clf, 
-									self.nbins)
-			segment.finding_components(componet_id_list)
+			# component_id_list = ComponentClassifier.predict(
+			# 						component_images, 
+			# 						self.clf, 
+			# 						self.nbins)
+			# segment.finding_components(componet_id_list)
+			segment.finding_components(['resistor', 'capacitor'])
 
 			# Draw a beautified digital equivalent of the segment
 			DiagramAnalyzer.draw_segment(segment)
@@ -83,7 +83,7 @@ class System:
 if __name__ == '__main__':
 	SmarterBoard = System()
 
-	fn = 'Doyung_Zoher_Test.jpg'
+	fn = 'intersection-test.jpg'
 	image = ImageCropper.open_file(os.path.join(SmarterBoard.images_dir, fn))
 	
 	SmarterBoard.run(image)
