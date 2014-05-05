@@ -23,6 +23,10 @@ from PIL import Image
     
     :: component finding
         -> **component_finder (locates components in a segment's image)
+        
+    :: drawing
+        -> draw_segment (modifies segment object to convert its hand-drawn image attribute into a computer-generated one)
+        -> draw_final ()
 '''
 
 ###############################################################################################
@@ -46,7 +50,7 @@ def find_horizontals(im, t=0.8):
 
     # return list of lists - [center, distribution] for each located horizontal
     row_analysis = remove_similar(line_rows, cols)
-    return row_analysis  
+    return row_analysis[0]
     
 def find_lines(im, t=0.8):
     ''' identifies strongest horizontals and verticals in an image
@@ -105,13 +109,13 @@ def remove_similar(items, max_length):
             this_item.append(i)
         else: # group is done; add it to list of group averages and clear it
             avg = sum(this_item)/len(this_item)
-            distr = this_item[-1]-this_item[0]/2
+            distr = (this_item[-1]-this_item[0])/2
             main_items.append([avg, distr])
-            this_item = []
+            this_item = [i]
 
     if len(this_item) != 0: # catch last group
         avg = sum(this_item)/len(this_item)
-        distr = this_item[-1]-this_item[0]/2
+        distr = (this_item[-1]-this_item[0])/2
         main_items.append([avg, distr])
         
     return main_items
@@ -136,7 +140,9 @@ def get_segments(im):
     for row in main_rows:
         # top and bottom boundaries consistent across row; dependent on image size
         t = row-int(0.05*rows)
+        if t < 0: t = 0
         b = row+int(0.05*rows)  
+        if b > rows: b = rows
         
         # left and right boundaries defined by one column intersection and the next
         for i in range(len(main_cols)-1):
@@ -151,7 +157,9 @@ def get_segments(im):
     for col in main_cols:
         # left and right boundaries consistent down column
         l = col-int(0.05*cols)
+        if l < 0: l = 0
         r = col+int(0.05*cols)
+        if r > cols: r = cols
         
         # top and bottom boundaries defined by one row intersection and the next
         for i in range(len(main_rows)-1):
@@ -247,31 +255,38 @@ def component_finder(segment):
     
 ''' ------ DRAWING ------ '''
 def draw_segment(segment):
+    ''' modifies segment object to convert its hand-drawn image attribute into a computer-generated one
+        input: segment object with hand-drawn image attribute
+        output: same segment object with computer-generated image attribute
+    '''
     width = 700
     
-    # 
     fin_segment = Image.new('RGBA', (segment.length(), width))
-    line = Image.open('line.png').convert('RGBA')
+    line_element = Image.open('line.png').convert('RGBA')
     
+    # draw horizontal line onto fin_segment
     tiles = segment.length()/width
     current_tile = 0
-    
     for i in range(tiles):
-        fin_segment.paste(line, box=(current_tile*width, 0), mask=line)
+        fin_segment.paste(line_element, box=(current_tile*width, 0), mask=line_element) # all tiles except last are left-justified
         current_tile += 1
-    fin_segment.paste(line, box=(segment.length()-width, 0), mask=line)
+    fin_segment.paste(line_element, box=(segment.length()-width, 0), mask=line_element) # last tile is right-justified
 
+    # identify components and place them onto the line
     all_comps = segment.component_id_list
-    x_coord = 1
+    current_component = 1
     for i in range(len(all_comps)):
-        fin_segment.paste(Image.open(all_comps[i]+'.png'), box=((x_coord * segment.length()/(len(all_comps)+1))-350, 0))
-        x_coord += 1
+        position = (current_component/(len(all_comps)+1)) * segment.length()
+        fin_segment.paste(Image.open(all_comps[i]+'.png'), box=(position-350, 0))
+        current_component += 1
 
+    # store redrawn image to original segment object
     fin_segment.save('test.GIF', transparency=0)
     segment.image = fin_segment
     
         
 def final_draw(segments):
+    # determine width and height of final image
     fin_width = []
     fin_height = []
 
@@ -285,6 +300,7 @@ def final_draw(segments):
     fin_height = max(fin_height)+len(segments*350)
     fin_image = Image.new('L', (fin_width, fin_height), color=255)
 
+    # place segments onto image
     for segment in segments:
         if segment.is_horizontal():
             layer = segment.image
@@ -294,8 +310,8 @@ def final_draw(segments):
             fin_image.paste(layer, box=(segment.start[0], segment.start[1]+350), mask=layer)
 
     fin_image.show()
+    return fin_image
 
 if __name__ == '__main__':
-
     segments = get_segments(Image.open('TestImages/intersection-test.jpg'))
     print segments
