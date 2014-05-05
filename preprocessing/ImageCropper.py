@@ -58,9 +58,11 @@ def smart_crop(im):
     (c, r) = toCrop.size # counts x width (number of columns) first
     a = pix_to_array(toCrop_pix, r, c)
     box = array_bounds(a) # (left, top, right, bottom) tuple
+    toCrop.save('crop.jpg')
    
     # make cropped image
     toSave = threshold(im, 50) # more normal-looking threshold
+    toSave.crop(box).save('save.jpg')
     return toSave.crop(box) # built-in image method
     
 

@@ -262,56 +262,63 @@ def draw_segment(segment):
     width = 700
     
     fin_segment = Image.new('RGBA', (segment.length(), width))
-    line_element = Image.open('line.png').convert('RGBA')
+    line_element = Image.open('SourceImages/line.png').convert('RGBA')
     
     # draw horizontal line onto fin_segment
     tiles = segment.length()/width
     current_tile = 0
     for i in range(tiles):
-        fin_segment.paste(line_element, box=(current_tile*width, 0), mask=line_element) # all tiles except last are left-justified
+        fin_segment.paste(line_element, box=(current_tile*width, 0)) # all tiles except last are left-justified
         current_tile += 1
-    fin_segment.paste(line_element, box=(segment.length()-width, 0), mask=line_element) # last tile is right-justified
+    fin_segment.paste(line_element, box=(segment.length()-width, 0)) # last tile is right-justified
 
     # identify components and place them onto the line
     all_comps = segment.component_id_list
     current_component = 1
     for i in range(len(all_comps)):
         position = (current_component/(len(all_comps)+1)) * segment.length()
-        fin_segment.paste(Image.open(all_comps[i]+'.png'), box=(position-350, 0))
+        fin_segment.paste(Image.open('SourceImages/'+all_comps[i]+'.png'), box=(position-350, 0)) # -350 centers 700px wide image
         current_component += 1
 
     # store redrawn image to original segment object
-    fin_segment.save('test.GIF', transparency=0)
     segment.image = fin_segment
     
         
 def final_draw(segments):
     # determine width and height of final image
-    fin_width = []
-    fin_height = []
-
+    width = 0
+    height = 0
+    
     for segment in segments:
-        if segment.is_horizontal():
-            fin_width.append(segment.length())
-        else:
-            fin_height.append(segment.length())
-
-    fin_width = max(fin_width)+len(segments)*350
-    fin_height = max(fin_height)+len(segments*350)
-    fin_image = Image.new('L', (fin_width, fin_height), color=255)
+        if segment.start[0] > width: width = segment.start[0]
+        if segment.end[0] > width: width = segment.end[0]
+        if segment.start[1] > height: height = segment.start[1]
+        if segment.end[1] > height: height = segment.start[1]
+    width += 350
+    height += 350
+    
+    fin_image = Image.new('L', (width, height), color=255)
 
     # place segments onto image
     for segment in segments:
         if segment.is_horizontal():
             layer = segment.image
-            fin_image.paste(layer, box=(segment.start[0]+350, segment.start[1]), mask=layer)
+            fin_image.paste(layer, box=(segment.start[0], segment.start[1]-350))
+            layer.save('test.jpg')
         else:
             layer = segment.image.rotate(-90)
-            fin_image.paste(layer, box=(segment.start[0], segment.start[1]+350), mask=layer)
+            fin_image.paste(layer, box=(segment.start[0]-350, segment.start[1]))
+            print 'Pasting'
 
-    fin_image.show()
+    fin_image.save('draw-result.jpg')
     return fin_image
 
 if __name__ == '__main__':
-    segments = get_segments(Image.open('TestImages/intersection-test.jpg'))
-    print segments
+    im = Image.open('TestImages/intersection-test.jpg')
+    bw = ImageCropper.smart_crop(im)
+    s = get_segments(bw)
+    #for segment in s:
+    #    segment.finding_components(['capacitor', 'resistor'])
+    #    draw_segment(segment)
+    
+    final_draw(s)
