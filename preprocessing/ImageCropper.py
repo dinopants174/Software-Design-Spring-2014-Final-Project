@@ -60,7 +60,7 @@ def smart_crop(im):
     box = array_bounds(a) # (left, top, right, bottom) tuple
    
     # make cropped image
-    toSave = threshold(im, 100) # more normal-looking threshold
+    toSave = threshold(im, 40) # more normal-looking threshold
     return toSave.crop(box) # built-in image method
     
 
@@ -137,8 +137,5 @@ def all_white(a):
 
 ''' ------ EXAMPLE USE CASE ------ '''
 if __name__ == '__main__':
-    directory = 'TestImages/'
-    filename = 'Doyung_Zoher_Test.jpg'
-    im = open_file(directory+filename)
-    cropped = smart_crop(im)
+    
     cropped.save(directory+'cp_'+filename)
