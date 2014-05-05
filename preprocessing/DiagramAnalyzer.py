@@ -97,7 +97,7 @@ def remove_similar(items, max_length):
                 -> 80 and 420 are averages of [60...100] and [400...440] sublist
                 -> (100-60)/2 = 20 and (440-400)/2 = 20
     '''
-    
+
     main_items = []
     this_item = []
     
@@ -288,14 +288,12 @@ def final_draw(segments):
     for segment in segments:
         if segment.is_horizontal():
             layer = segment.image
-            print segment.start, segment.end
             fin_image.paste(layer, box=(segment.start[1]+350, segment.start[0]), mask=layer)
         else:
             layer = segment.image.rotate(-90)
-            print segment.start, segment.end
             fin_image.paste(layer, box=(segment.start[1], segment.start[0]+350), mask=layer)
 
-    fin_image.show()
+    fin_image.save('draw-result.jpg')
 
 
 if __name__ == '__main__':
