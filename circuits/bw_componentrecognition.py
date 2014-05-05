@@ -74,8 +74,9 @@ class Preprocessing:
         width, height = org_dim
         output_width = int(scaler*width)
         output_height = int(scaler*height)
-        return transform.resize(img, (output_height, output_width))
-    
+        # return transform.resize(img, (output_height, output_width))
+        return cv2.resize(img, (output_width, output_height), interpolation=cv2.INTER_CUBIC)
+
     @staticmethod
     def standardize_shape(img):
         """ standardizes the shape of the images to a tested shape for gabor 
@@ -151,7 +152,7 @@ class FeatureExtraction:
         """
         raw = cv2.HuMoments(cv2.moments(img))
         log_trans = -np.sign(raw)*np.log10(np.abs(raw))
-        return log_trans.flatten()[-1]
+        return log_trans.flatten()
 
     @staticmethod
     def rawpix_nbins(image, nbins):
@@ -164,6 +165,12 @@ class FeatureExtraction:
         gabor_hist = FeatureExtraction.mean_exposure_hist_from_gabor(image,nbins)
         image = image.flatten()
         return Utils.hStackMatrices(image, gabor_hist)
+
+    @staticmethod
+    def moments_nbins(image, nbins):
+        moments = FeatureExtraction.moments_hu(image)
+        gabor_hist = FeatureExtraction.mean_exposure_hist_from_gabor(image,nbins)
+        return np.hstack((moments, gabor_hist))
 
 class Data:
 
@@ -182,13 +189,14 @@ class Data:
     @staticmethod
     def loadImageFeatures(filename,nbins):
         image = Data.loadImage(filename)
-        return FeatureExtraction.rawpix_nbins(image, nbins)
+        return FeatureExtraction.moments_nbins(image, nbins)
 
     @staticmethod    
     def loadImage(filename):
-        image = Image.open(filename)
-        image = image.convert('1') # black and white
-        image = np.array(image)
+        image = cv2.imread(filename, cv2.CV_LOAD_IMAGE_GRAYSCALE)
+        # image = Image.open(filename)
+        # image = image.convert('1') # black and white
+        # image = np.array(image)
         return Preprocessing.standardize_shape(image)
 
     @staticmethod
@@ -284,19 +292,19 @@ def main1():
 
 def main2():
     # 0.97 gridsearch optimized
-    X, y = Data.loadTrain(NUM_TRAIN, nbins=6)
+    X, y = Data.loadTrain(NUM_TRAIN, nbins=23)
 
-    # scaler = StandardScaler().fit(X)
-    # X = scaler.transform(X)
+    scaler = StandardScaler().fit(X)
+    X = scaler.transform(X)
     
     # normalizer = Normalizer().fit(X)
     # X = normalizer.transform(X)
     
     classifiers = [
-        # SVC(C=100, kernel='rbf'),
+        SVC(C=100, kernel='rbf', gamma=0.1),
         # SVC(C=100, kernel='linear'),
-        RandomForestClassifier(),
-        GradientBoostingClassifier()]
+        RandomForestClassifier()]
+        # GradientBoostingClassifier()]
         # LogisticRegression(),
         # RandomForestClassifier(n_estimators=20),
         # GradientBoostingClassifier(n_estimators=100)]
@@ -324,7 +332,7 @@ def main3():
     joblib.dump(clf, "RF_nbins10_rawpix.pkl",9)
 
 if __name__ == '__main__':
-    main3()
+    main2()
 
 """
 STDOUT: 22:00 4/23/2014
