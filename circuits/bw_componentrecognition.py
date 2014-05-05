@@ -7,6 +7,7 @@ author: rlouie
 import os
 import sys
 
+import Image
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
@@ -44,7 +45,10 @@ class Preprocessing:
     
     @staticmethod
     def binary_from_thresh(img):
-        """ Base function for converting to binary using a threshold """
+        """ Base function for converting to binary using a threshold 
+        args:
+            img: m x n ndarray
+        """
         thresh = threshold_otsu(img)
         binary = img < thresh
         return binary
@@ -52,42 +56,60 @@ class Preprocessing:
     @staticmethod
     def binary_from_laplacian(img):
         """ Function that converts an image into binary using
-        a laplacian transform and feeding it into binary_from_thresh """
+        a laplacian transform and feeding it into binary_from_thresh 
+        args:
+            img: m x n ndarray
+        """
         laplacian = cv2.Laplacian(img,cv2.CV_64F)
         return Preprocessing.binary_from_thresh(laplacian)
 
     @staticmethod
     def scale_image(img,scaler,org_dim):
         """ resizes an image based on a certain scaler 
-        args: 
+        args:
+            img: m x n ndarray 
             scaler: int or float. A value of 1.0 would output a image.shape = org_dim
             org_dim: tuple. Denoting (width, height)
         returns: ndarray. Scaled image """
         width, height = org_dim
-        output_size = (int(scaler*width), int(scaler*height))
-        return cv2.resize(img, output_size)
+        output_width = int(scaler*width)
+        output_height = int(scaler*height)
+        return transform.resize(img, (output_height, output_width))
     
     @staticmethod
     def standardize_shape(img):
-        """ standardizes the shape of the images to a tested shape for gabor filters """
+        """ standardizes the shape of the images to a tested shape for gabor 
+        filters 
+        args:
+            img: m x n ndarray
+        """
         return Preprocessing.scale_image(img, scaler=.25, org_dim=(256,153))
     
     @staticmethod
     def angle_pass_filter(img, frequency, theta, bandwidth):
-        """ returns the magnitude of a gabor filter response for a certain angle """
+        """ returns the magnitude of a gabor filter response for a certain angle 
+        args:
+            img: m x n ndarray
+        """
         real, imag = gabor_filter(img, frequency, theta, bandwidth)
         mag = np.sqrt(np.square(real) + np.square(imag))
         return mag
     
     @staticmethod
     def frontslash_filter(img, denom, freq, bandwidth):
-        """ intensifies edges that look like a frontslash '/' """
+        """ intensifies edges that look like a frontslash '/' 
+        args:
+            img: m x n ndarray
+        """
         theta = np.pi*(1.0/denom)
         return Preprocessing.angle_pass_filter(img,freq,theta,bandwidth)
     
     @staticmethod
     def backslash_filter(img,denom,freq,bandwidth):
-        """ intensifies edges that look like a backslash '\' """
+        """ intensifies edges that look like a backslash '\' 
+        args:
+            img: m x n ndarray
+        """
         theta = np.pi*(-1.0/denom)
         return Preprocessing.angle_pass_filter(img,freq,theta,bandwidth)
 
@@ -164,7 +186,9 @@ class Data:
 
     @staticmethod    
     def loadImage(filename):
-        image = cv2.imread(filename, cv2.CV_LOAD_IMAGE_GRAYSCALE)
+        image = Image.open(filename)
+        image = image.convert('1') # black and white
+        image = np.array(image)
         return Preprocessing.standardize_shape(image)
 
     @staticmethod
