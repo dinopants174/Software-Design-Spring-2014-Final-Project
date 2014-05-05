@@ -97,6 +97,7 @@ def remove_similar(items, max_length):
                 -> 80 and 420 are averages of [60...100] and [400...440] sublist
                 -> (100-60)/2 = 20 and (440-400)/2 = 20
     '''
+    
     main_items = []
     this_item = []
     
