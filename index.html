@@ -35,10 +35,41 @@
         <section id="main_content">
 
 <h3>
-  <a name='final-proposal' class='anchor' href='#final-proposal'><span class='octicon octicon-link'></span></a>Reflection & Final Proposal</h3>
+  <a name='final-proposal' class='anchor' href='#final-proposal'><span class='octicon octicon-link'></span></a>Reflection</h3>
+  <p>
+    <strong>Outcome</strong>
+    <br>
+    For the most part, we did achieve our minimum deliverable. Our software takes an image of a hand-drawn circuit diagram as input and produces a neat, computer-generated version as output. Our initial maximum deliverable was to provide a suite of optical character recognition services and we realized this was not a feasible goal for this project. Recognizing just resistors and capacitors involved producing 263 samples of training data and the packages we found to perform OCR only worked for very specific test cases. We are satisfied with what we set out to do in terms of our minimum deliverable.
+    <br><br>
+    In terms of what went well, we definitely had a clear pipeline of our general process throughout this entire project. Because of this pipeline, we could easily work in parallel, making sure each part of the pipeline feeds into the next. As a result, we could essentially start at the easiest part of the pipeline (analyzing a single segment) before moving to the front and end of the pipeline, working at segmentation and drawing each segment and the final diagram after working on the simpler parts of image processing.
+    <br><br>
+    In addition, our team worked on separate branches on Github and started to work each meeting by merging our branches. This kept all of our work up to date and minimized our Github problems but it did come with its own set of frustrations. Our workflow on Github definitely became a lot more convoluted using multiple branches but our team has learned a lot about how to use Github on a team project.
+    <br><br>
+    Finally, we followed the philosophy of “make it work, then clean it up” on our project and it actually ended up working well. With the pipeline, we had to make sure each step had the appropriate inputs and outputs. After getting each step working, we spent a significant time at the end of the project cleaning up the code, refactoring, and coming up with better solutions and algorithms than we had before. Because our inputs and outputs did not change, but our method of producing these outputs improve, we had a much cleaner and clearer pipeline. Because of this strucutre, we were able to move efficiently and rapidly prototype.
+  </p>
+  <p>
+    <strong>Design</strong>
+    <br>
+    The most impactful design decision we made involved separating the image processing pipeline up into entirely separate modules. This facilitated not only a neat division of labor b(see below) but also easier debugging - we were able to ensure that each individual step of the pipeline worked in isolation from all of the others before attempting to chain them together. The pipeline was complicated enough that, had we tried to do everything at once, the code would have been difficult to follow and debugging would have been frustrating.
+    <br><br>
+    As a result of dividing the pipeline into separate modules, though, we were each working with our own code for most of the project. As a result, we didn’t plan the structure of our code before writing it and we didn’t document to the extent that we could have as we wrote. When we began to integrate subsystems as the project progressed, we realized why it is useful to do so.
+  </p>
+  
+  <p>
+    <strong>Division of Labor</strong>
+    <br>
+    Our design pipeline lent itself neatly to division of labor. We were able to split the pipeline into distinct phases, assume each phase produced an output suitable for use as the input to the next phase, and work in parallel rather than in series. For instance, we worked on line detection, component detection, and component identification simultaneously. We encountered minor challenges here - the line detection produced multiple-pixel-wide dark lines, while component detection required a line only one pixel wide, and we trained component recognition on RGB images before realizing that our pipeline would require it to identify black and white thresholded images. However, it was easy to bridge the gaps between the sub-pipelines.
+  </p>
+  
+  <p>
+    <strong>Bug Report</strong>
+    <br>
+    When piecing together the segmentation process (identifying lines in an image and cropping segments out) and the component recognition process, we encountered a bug which made us think our horizontal line-finding was buggy. It consistently drew a line in the wrong place on the image, and we weren’t sure why. Upon saving the images to file and looking at them, we realized that our crop function was spilling over the edge of the image: we were including pixels outside of the image boundary in the crop box, those pixels were defaulting to black, and our horizontal line finder was trying to draw a line which took them into account. We fixed the crop box, limiting it to the image, at which point the horizontal line-finder began to work again. We could have found the bug more quickly by testing our crop function on an actual image and observing the output images before attempting to include horizontal line-finding as well.
+  </p>
+  
 
 <h3>
-<a name ="design" class="anchor" href="#design"><span class="octicon octicon-link"></span></a>Final Design</h3>
+<a name ="design" class="anchor" href="#design"><span class="octicon octicon-link"></span></a>Design</h3>
 
 <p>
   <strong>Design Pipeline</strong>
