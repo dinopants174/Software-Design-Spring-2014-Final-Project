@@ -74,8 +74,8 @@ Below is a procedure of this pipeline:
   <br>
   Another design choice that we made focused on how we planned to draw each segment after determining what components are in each segment. One approach that we initially took was to draw the segment by separating each component with a wire. Thus, a segment with just a resistor in it would be drawn as: wire, resistor, wire using the images below.
   <br><br>
-  <img src="digitalline.png", width=35%>
-  <img src="digitalresistor.png", width=35%>
+  <img src="digitalline.png", width=35%><br>
+  <img src="digitalresistor.png", width=35%><br>
   <img src="digitalcapacitor.png", width=35%>
   <br>
   However, this approach was problematic because the length of a segment depended on the number of components it contained. If two horizontal segments that were supposed to be the same length contained different numbers of components, we would have had to scale one of them up to match, changing either the size or the aspect ratio of the components. We solved this problem by first drawing a wire of appropriate length, using only the wire image, and then superimposing the components in an evenly spaced pattern.
