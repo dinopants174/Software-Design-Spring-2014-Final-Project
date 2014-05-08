@@ -81,11 +81,9 @@ Below is a procedure of this pipeline:
 <p>
   <strong>Data Structure</strong>
   <br>
-Through our image segmentation algorithm, we produce a list of line segment elements. Each line segment element is an object which stores the connections the segment has, the components it contains, and likely its relative location in the frame (vertical vs. horizontal, left side vs. right We will be able to refactor our data structure into a structure which interfaces with the RESISTOR team (they’re producing breadboard layouts from graphical representations of circuit diagrams): they don’t need any of the relative location information, but everything related to connections is relevant to their project as well as to ours.
-<br><br>
-Below is a UML diagram for these objects.
-<br><br>
-<img src="uml.png">
+For further development, we want to improve the accuracy of our segmentation, component identification, and component classification algorithms to work on various types of user inputs. Currently, we need the user to draw the circuit using a thick marker, space the components apart and away from the edges of each segment, and we need each component to be quite large in order to accurately render a clean circuit diagram. To accomplish this, we would need to vary some of the parameters we use to threshold the image and offset the lines searching for instances of non whitespace. We would also need to provide more training images for our classifier.
+<br>
+In addition, we wanted to put our service online so that students could use our program to convert the circuit diagrams they had to clean renderings they could put in their lab reports. In the future, we would probably have to use Django to create our SmarterBoard web app.
 </p>
 
 <p>
@@ -98,34 +96,7 @@ Below is a diagram of this segmentation process, taking a circuit diagram and br
 <img src="circuitrepresentation.PNG">
 </p>
 
-<h3>
-<a name ="design-proposal" class="anchor" href="#design-proposal"><span class="octicon octicon-link"></span></a>Design Proposal</h3>
 
-<p>
-  <strong>Design Pipeline</strong>
-  <br>
-We input a hand-drawn circuit diagram, we define a reading frame that moves through the diagram, we check where the wires are by finding lines at a certain threshold for darkness, and we move along the line, looking for irregularities. Upon finding an irregularity, we define a component there and we use our component classifier to identify what component is there. Finally, we produce our initial goal of a nicely rendered circuit diagram while also producing a list of objects that the RESISTOR team can use.
-</p>
-
-<p>
-  <strong>Design Story</strong>
-  <br>
-After talking to the ninjas about performing OCR on a whiteboard and generating notes based on the content on the whiteboard, we decided that this was too general a project. Instead, we broke up into two teams in order to pursue two different ideas involving OCR. One group worked on compiling handwritten code while another worked on a hand-drawn circuit diagram renderer. After beta-testing each project for a week, we made the decision to focus entirely on the circuit diagram project. This decision was made based on code that we modified from research papers which functioned incredibly well. It was also due to the struggle of retraining the module we were using, Tesseract, to perform OCR on handwriting and the fact that Tesseract was trained off of English and was not recognizing code. We were able to reach the minimum deliverables we had for both projects and then decided that the circuit diagram project just had much more room to grow and do interesting work than the hand-written code compiler.
-</p>
-
-<p>
-  <strong>Data Structure</strong>
-  <br>
-We’ve just decided on the way we’re planning to store graphical representations of circuit diagrams after we read them from images. We’re open to interfacing with the RESISTOR team (they’re producing breadboard layouts from graphical representations of circuit diagrams), and we used our first design review with them in part to decide on a data structure which will be common to both of our teams.
-<br><br>
-Each component in the circuit will be stored as an object of the class ‘Component’. That class will include an attribute, ‘connections’, which is a dictionary mapping from component pin number to a list of Component objects connected to that pin. We will consider resistors and capacitors to be components with two pins (ie for a resistor or capacitor ‘connections’ will have two keys, 1 and 2, which correspond to two lists of components).
-</p>
-
-<p>
-  <strong>Development Plan</strong>
-  <br>
-Since our team split up between code-compiler and circuit-reader previously, we met and reorganized tasks. Now that the team’s focus was on the circuit-reader, we allocated tasks to each of our members: Zoher and Doyung will work on the component-detection of the program (finding where resistors, capacitors, etc. are on a wire line), Sarah will continue working on line-detection (she already has a basic version and is going to improve it) and Ryan will work on creating a drawing given a list of intersections and component location. These parts will not interfere with each other, but Sarah, Doyung and Zoher will work closely together for this set of tasks because the line detection and component detection are related. The team meets every week with a deliverable, in which we both explain how we coded our tasks and show how far we got (to let other team members understand the code as well as scope our tasks appropriately).
-</p>
 
 
 <h3>
