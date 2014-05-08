@@ -40,11 +40,11 @@
   <strong>Design Pipeline</strong>
   <br>
 Our software takes an image of a hand-drawn circuit diagram as input. First, we convert the photo to black and white and threshold it, ensuring that the photo only exists of white pixels and black pixels, with no grayscale. We crop the border of the photo to the outermost points of each segment in the diagram. Then, we look for wires in the diagram by scanning the image for rows and columns with an average darkness darker than a defined threshold; we identify intersections and separate the diagram into line segments. We proceed to rotate each segment so that it is horizontal as this allows us to run our component finder.
-<br>
+<br><br>
 Using the location of the wire that we found before, we offset a certain distance above and below the wire. We move left to right along the segment looking for any instance of non-whitespace. Upon finding these instances, we conjecture about the spacing between each component and find the start and end points of each component by looking at the space between the instances of non-whitespace. If that spacing exceeds a certain percentage of the width of the segment, we assume that the previous component has ended and a new one has started. From there, we crop an image of the located component from the diagram, and we use our component classifier to identify what component is there.
-<br>
+<br><br>
 After determining the information in each segment, we draw it cleanly. Going segment by segment, we draw each one and then, using their original positions in the drawing, we paste each segment onto a final canvas. The result is our initial goal of a nicely rendered circuit diagram. 
-<br>
+<br><br>
 Below is a procedure of this pipeline:
 1) Take photo of circuit
 2) Convert to Black and White
@@ -62,7 +62,7 @@ Below is a procedure of this pipeline:
   <strong>Design Story</strong>
   <br>
   Two important design choices we had to make involve our segmentation algorithm and the way we draw each segment.
-  <br>
+  <br><br>
   For the segmentation algorithm, we had to make an important choice in what we classify as a segment. There are two variations of circuit diagrams, one that clearly shows the current flowing back into the battery and the other that simply shows what components should be connected either to some voltage or to ground.  We chose to focus on the first type of circuit diagrams, which essentially consist of sequences of rectangles. Below are examples of both variations.
   <br><br>
   <img src = "Square_Diagram.png">
@@ -84,17 +84,15 @@ Below is a procedure of this pipeline:
 <p>
   <strong>Data Structure</strong>
   <br>
-For further development, we want to improve the accuracy of our segmentation, component identification, and component classification algorithms to work on various types of user inputs. Currently, we need the user to draw the circuit using a thick marker, space the components apart and away from the edges of each segment, and we need each component to be quite large in order to accurately render a clean circuit diagram. To accomplish this, we would need to vary some of the parameters we use to threshold the image and offset the lines searching for instances of non whitespace. We would also need to provide more training images for our classifier.
-<br>
-In addition, we wanted to put our service online so that students could use our program to convert the circuit diagrams they had to clean renderings they could put in their lab reports. In the future, we would probably have to use Django to create our SmarterBoard web app.
+  Through our image segmentation algorithm, we produce a list of line segment objects. Each line segment object is initialized with three attributes: two pixel tuples (one for either end of the segment) and an image of the hand-drawn segment. When each segment passes through first the component identifier and then the component classifier, it gains an attribute (a list describing the components along the segment and the order in which they appear) and we replace the hand-drawn image with a computer-generated one.
 </p>
 
 <p>
   <strong>Development Plan</strong>
   <br>
-In terms of further development, we have four main tasks we need to complete. We need to create a segmentation algorithm that will read a circuit diagram and separate it based on intersections. Sarah has been working primarily on this algorithm. We also need to retool and refactor our component classifier such that it works with the black and white thresholded images that our component finder outputs. This will primarily be Ryan’s responsibility. Our third goal is to construct the data type mentioned above and produce a list of these segment objects where each object contains the connections of each segment. We will probably pursue this as a group, integrating all the data we have into these objects. Finally, we want to look at a single segment and produce a clean, rendered drawing of that segment, containing appropriate lines, resistors, and capacitors which is what Doyung and Zoher will work on.
+  For further development, we want to improve the accuracy of our segmentation, component identification, and component classification algorithms to work on various types of user inputs. Currently, we need the user to draw the circuit using a thick marker, space the components apart and away from the edges of each segment, and we need each component to be quite large in order to accurately render a clean circuit diagram. To accomplish this, we would need to vary some of the parameters we use to threshold the image and offset the lines searching for instances of non whitespace. We would also need to provide more training images for our classifier.
 <br><br>
-Below is a diagram of this segmentation process, taking a circuit diagram and breaking it up into segments, each of which can be individually processed.
+In addition, we wanted to put our service online so that students could use our program to convert the circuit diagrams they had to clean renderings they could put in their lab reports. In the future, we would probably have to use Django to create our SmarterBoard web app.
 </p>
 
 
