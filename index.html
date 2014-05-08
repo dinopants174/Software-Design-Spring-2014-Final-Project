@@ -64,6 +64,7 @@ Below is a procedure of this pipeline:
   Two important design choices we had to make involve our segmentation algorithm and the way we draw each segment.
   <br>
   For the segmentation algorithm, we had to make an important choice in what we classify as a segment. There are two variations of circuit diagrams, one that clearly shows the current flowing back into the battery and the other that simply shows what components should be connected either to some voltage or to ground.  We chose to focus on the first type of circuit diagrams, which essentially consist of sequences of rectangles. Below are examples of both variations.
+  <br><br>
   <img src = "Square_Diagram.png">
   <img src = "gsr_diagram.png">
   <br>
@@ -71,7 +72,7 @@ Below is a procedure of this pipeline:
   <img src = "circuitrepresentation.PNG">
   <br>
   Another design choice that we made focused on how we planned to draw each segment after determining what components are in each segment. One approach that we initially took was to draw the segment by separating each component with a wire. Thus, a segment with just a resistor in it would be drawn as: wire, resistor, wire using the images below.
-  <img src="digitalline.png">
+  <img src="digitalline.png", width=15%>
   <img src="digitalresistor.png">
   <img src="digitalcapacitor.png">
   <br>
@@ -92,8 +93,6 @@ In addition, we wanted to put our service online so that students could use our 
 In terms of further development, we have four main tasks we need to complete. We need to create a segmentation algorithm that will read a circuit diagram and separate it based on intersections. Sarah has been working primarily on this algorithm. We also need to retool and refactor our component classifier such that it works with the black and white thresholded images that our component finder outputs. This will primarily be Ryan’s responsibility. Our third goal is to construct the data type mentioned above and produce a list of these segment objects where each object contains the connections of each segment. We will probably pursue this as a group, integrating all the data we have into these objects. Finally, we want to look at a single segment and produce a clean, rendered drawing of that segment, containing appropriate lines, resistors, and capacitors which is what Doyung and Zoher will work on.
 <br><br>
 Below is a diagram of this segmentation process, taking a circuit diagram and breaking it up into segments, each of which can be individually processed.
-<br><br>
-<img src="circuitrepresentation.PNG">
 </p>
 
 
