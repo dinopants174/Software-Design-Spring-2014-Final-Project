@@ -39,13 +39,43 @@
 <p>
   <strong>Design Pipeline</strong>
   <br>
-Our software takes an image of a hand-drawn circuit diagram as input. First, we look for wires in the diagram by scanning the image for rows and columns with an average darkness darker than a defined threshold; then, we identify intersections and separate the diagram into line segments. We proceed to rotate each segment so that it is horizontal as this allows us to run our component finder. We move left to right along each line looking for irregularities. Upon finding an irregularity, we crop an image of the located component from the diagram, and we use our component classifier to identify what component is there. We store the connections between and the locations of the components and segments, and finally we produce our initial goal of a nicely rendered circuit diagram while also producing a list of objects that the RESISTOR team can use.
+Our software takes an image of a hand-drawn circuit diagram as input. First, we convert the photo to black and white and threshold it, ensuring that the photo only exists of white pixels and black pixels, with no grayscale. We crop the border of the photo to the outermost points of each segment in the diagram. Then, we look for wires in the diagram by scanning the image for rows and columns with an average darkness darker than a defined threshold; we identify intersections and separate the diagram into line segments. We proceed to rotate each segment so that it is horizontal as this allows us to run our component finder.
+<br>
+Using the location of the wire that we found before, we offset a certain distance above and below the wire. We move left to right along the segment looking for any instance of non-whitespace. Upon finding these instances, we conjecture about the spacing between each component and find the start and end points of each component by looking at the space between the instances of non-whitespace. If that spacing exceeds a certain percentage of the width of the segment, we assume that the previous component has ended and a new one has started. From there, we crop an image of the located component from the diagram, and we use our component classifier to identify what component is there.
+<br>
+After determining the information in each segment, we draw it cleanly. Going segment by segment, we draw each one and then, using their original positions in the drawing, we paste each segment onto a final canvas. The result is our initial goal of a nicely rendered circuit diagram. 
+<br>
+Below is a procedure of this pipeline:
+1) Take photo of circuit
+2) Convert to Black and White
+3) Crop photo
+4) Search for wires
+5) Identify segments
+6) Search for components
+7) Classify components
+8) Draw segments
+9) Draw circuit
 </p>
+
 
 <p>
   <strong>Design Story</strong>
   <br>
-After talking to the ninjas about performing OCR on a whiteboard and generating notes based on the content on the whiteboard, we decided that this was too general a project. Instead, we broke up into two teams in order to pursue two different ideas involving OCR. One group worked on compiling handwritten code while another worked on a hand-drawn circuit diagram renderer. After beta-testing each project for a week, we made the decision to focus entirely on the circuit diagram project. This decision was made based on code that we modified from research papers which functioned incredibly well. It was also due to the struggle of retraining the module we were using, Tesseract, to perform OCR on handwriting and the fact that Tesseract was trained off of English and was not recognizing code. We were able to reach the minimum deliverables we had for both projects and then decided that the circuit diagram project just had much more room to grow and do interesting work than the hand-written code compiler.
+  Two important design choices we had to make involve our segmentation algorithm and the way we draw each segment.
+  <br>
+  For the segmentation algorithm, we had to make an important choice in what we classify as a segment. There are two variations of circuit diagrams, one that clearly shows the current flowing back into the battery and the other that simply shows what components should be connected either to some voltage or to ground.  We chose to focus on the first type of circuit diagrams, which essentially consist of sequences of rectangles. Below are examples of both variations.
+  <img src = "Square_Diagram.png">
+  <img src = "gsr_diagram.png">
+  <br>
+  Focusing on the square circuit diagrams means that each segment must be bounded by two intersection points. We made this decision based on the input from one of our members in Signals and Systems, who saw the square diagrams more frequently in higher-level circuit classes. In addition, requiring each segment to be bounded by two intersections (rather than allowing for a segment to be bounded by one intersection and an edge) simplifies the segmentation algorithm and increases its accuracy. The diagram below describes our segmentation process.
+  <img src = "circuitrepresentation.PNG">
+  <br>
+  Another design choice that we made focused on how we planned to draw each segment after determining what components are in each segment. One approach that we initially took was to draw the segment by separating each component with a wire. Thus, a segment with just a resistor in it would be drawn as: wire, resistor, wire using the images below.
+  <img src="digitalline.png">
+  <img src="digitalresistor.png">
+  <img src="digitalcapacitor.png">
+  <br>
+  However, this approach was problematic because the length of a segment depended on the number of components it contained. If two horizontal segments that were supposed to be the same length contained different numbers of components, we would have had to scale one of them up to match, changing either the size or the aspect ratio of the components. We solved this problem by first drawing a wire of appropriate length, using only the wire image, and then superimposing the components in an evenly spaced pattern.
 </p>
 
 <p>
